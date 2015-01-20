@@ -144,21 +144,28 @@ if __name__ == "__main__":
     gamma_test(april, may, "hvhv", 12, 0.01)
     gamma_test(april, may, "vvvv", 12, 0.01)
 
-    # Wishart test
-
     april_no = region(april, no_change_i, no_change_j)
     may_no = region(may, no_change_i, no_change_j)
 
-    w = Wishart(april, may, 13, 13)
-    wno = Wishart(april_no, may_no, 13, 13)
+    def wishart_test(ENL, percent):
+        w = Wishart(april, may, ENL, ENL)
+        wno = Wishart(april_no, may_no, ENL, ENL)
 
-    f, ax = wno.histogram(0.01)
-    ax.set_title(r"$-2 \rho \ln Q$ distribution in no change region")
-    f.savefig("fig/lnq.hist.png")
+        f, ax = wno.histogram(0.01)
+        hist_title = (r"$-2 \rho \ln Q$ distribution in no change region ENL={}"
+                .format(ENL))
+        hist_filename = "fig/lnq.hist.ENL{}.png".format(ENL)
 
-    im = w.image_binary(0.30)
-    plt.imsave("fig/lnq.png", im, cmap="gray")
+        ax.set_title(hist_title)
+        f.savefig(hist_filename)
 
-    # plt.imsave("fig/lnq.png", im, cmap='gray')
-    # plt.close('all')
+        im = w.image_binary(0.30)
+        plt.imsave("fig/lnq.png", im, cmap="gray")
+
+    wishart_test(11, 0.30)
+    wishart_test(12, 0.30)
+    wishart_test(13, 0.30)
+    wishart_test(14, 0.30)
+
+    plt.close('all')
 
