@@ -57,47 +57,45 @@ class Gamma(object):
     def image_linear(self, percentile):
         pass
 
-def wishart_test(X, Y, p, n, m):
-    "Returns ln(Q) of the wishart test statistic"
+class Wishart(object):
+    def __init__(self, X, Y, n, m):
+        self.X = X
+        self.Y = Y
+        self.n = n
+        self.m = m
 
-    detX = determinant(X)
-    detY = determinant(Y)
-    detXY = determinant(sar_sum(X, Y))
+        p = 3
+        detX = determinant(X)
+        detY = determinant(Y)
+        detXY = determinant(sar_sum(X, Y))
 
-    lnq = (p*(n+m)*np.log(n+m) - p*n*np.log(n) - p*m*np.log(m)
-            + n*np.log(detX) + m*np.log(detY) - (n+m)*np.log(detXY))
+        # Test statistic
+        self.lnq = (p*(n+m)*np.log(n+m) - p*n*np.log(n) - p*m*np.log(m)
+                + n*np.log(detX) + m*np.log(detY) - (n+m)*np.log(detXY))
 
-    rho = 1 - (2*p*p - 1)/(6*p) * (1/n + 1/m - 1/(n+m))
+        self.rho = 1 - (2*p*p - 1)/(6*p) * (1/n + 1/m - 1/(n+m))
 
-    w2 = -(p*p/4)*(1-1/rho)**2 + p*p*(p*p - 1)/24 * (1/(n*n) + 1/(m*m) - 1/((n+m)**2))*1/(p*p)
-    return lnq, rho, w2
+        self.w2 = (-(p*p/4)*(1-1/self.rho)**2
+                + p*p*(p*p - 1)/24 * (1/(n*n) + 1/(m*m) - 1/((n+m)**2))*1/(p*p))
 
-def wishart_change_detection(april, may, n, m):
-    "Wishart change detection"
+    def histogram(self, percent):
+        f, ax = plt.subplots(1, 1)
+        ax.hist(-2*self.rho*self.lnq.flatten(), bins=100, normed=True)
 
-    # Test statistic
-    p = 3
-    lnq, rho, w2 = wishart_test(april, may, p, n, m)
+        # Overlay pdf
+        p = 3
+        x = np.linspace(0, 50, 1000)
+        chi2 = scipy.stats.chi2
+        y = chi2.pdf(x, p**2) + self.w2*(chi2.pdf(x, p**2+4) - chi2.pdf(x, p**2))
+        ax.plot(x, y)
 
-    # Extract no change region and test statistic
-    april_no = region(april, no_change_i, no_change_j)
-    may_no = region(may, no_change_i, no_change_j)
-    lnq_no, rho, w2 = wishart_test(april_no, may_no, p, n, m)
+        return f, ax
 
-    # Histogram of the no change region
-    f, ax = plt.subplots(1, 1)
-    ax.hist(-2*rho*lnq_no.flatten(), bins=100, normed=True)
-
-    # Overlay pdf
-    x = np.linspace(0, 50, 1000)
-    chi2 = scipy.stats.chi2
-    y = chi2.pdf(x, p**2) + w2*(chi2.pdf(x, p**2+4) - chi2.pdf(x, p**2))
-    ax.plot(x, y)
-
-    im = np.zeros_like(lnq)
-    im[-2*rho*lnq > 30] = 1
-
-    return f, ax, im
+    def image_binary(self, percent):
+        threshold = 30
+        im = np.zeros_like(self.lnq)
+        im[-2*self.rho*self.lnq > threshold] = 1
+        return im
 
 if __name__ == "__main__":
 
@@ -113,9 +111,6 @@ if __name__ == "__main__":
     plt.imsave("fig/april.png", color_composite(april))
     plt.imsave("fig/may.png", color_composite(may))
 
-    # Gamma test
-
-    # No change region
     def gamma_test(april, may, channel, ENL, percent):
         # Data
         X = april.__dict__[channel]
@@ -150,9 +145,20 @@ if __name__ == "__main__":
     gamma_test(april, may, "vvvv", 12, 0.01)
 
     # Wishart test
-    # f, ax, im = wishart_change_detection(april, may, 13, 13)
-    # ax.set_title(r"$-2 \rho \ln Q$ distribution in no change region")
-    # f.savefig("fig/lnq.hist.png")
+
+    april_no = region(april, no_change_i, no_change_j)
+    may_no = region(may, no_change_i, no_change_j)
+
+    w = Wishart(april, may, 13, 13)
+    wno = Wishart(april_no, may_no, 13, 13)
+
+    f, ax = wno.histogram(0.01)
+    ax.set_title(r"$-2 \rho \ln Q$ distribution in no change region")
+    f.savefig("fig/lnq.hist.png")
+
+    im = w.image_binary(0.30)
+    plt.imsave("fig/lnq.png", im, cmap="gray")
+
     # plt.imsave("fig/lnq.png", im, cmap='gray')
     # plt.close('all')
 
