@@ -125,9 +125,10 @@ if __name__ == "__main__":
 
         # Name variables
         short_channel = channel[:2].upper()
-        hist_title = "Likelihood ratio distribution of no change region ({})".format(short_channel)
-        hist_filename = "fig/gamma.hist.{0}.{1:.2f}.png".format(short_channel, percent)
-        im_filename = "fig/gamma.im.{0}.{1:.2f}.png".format(short_channel, percent)
+        hist_title = ("Likelihood ratio distribution of no change region {} ENL={}"
+            .format(short_channel, ENL))
+        hist_filename = "fig/gamma.hist.ENL{0}.{1}.{2:.2f}.png".format(ENL, short_channel, percent)
+        im_filename = "fig/gamma.im.ENL{0}.{1}.{2:.2f}.png".format(ENL, short_channel, percent)
 
         # No change region histogram
         gno = Gamma(Xno, Yno, ENL, ENL)
@@ -141,17 +142,12 @@ if __name__ == "__main__":
         plt.imsave(im_filename, im, cmap='gray')
 
     gamma_test(april, may, "hhhh", 13, 0.01)
-    # f, ax, im95, im99 = gamma_change_detection(april.hvhv, may.hvhv, 13, 13)
-    # ax.set_title(")
-    # f.savefig("fig/gamma.hv.hist.png")
-    # plt.imsave("fig/gamma.hv.95.png", im95, cmap='gray')
-    # plt.imsave("fig/gamma.hv.99.png", im99, cmap='gray')
+    gamma_test(april, may, "hvhv", 13, 0.01)
+    gamma_test(april, may, "vvvv", 13, 0.01)
 
-    # f, ax, im95, im99 = gamma_change_detection(april.vvvv, may.vvvv, 13, 13)
-    # ax.set_title("Likelihood ratio distribution of no change region (VV)")
-    # f.savefig("fig/gamma.vv.hist.png")
-    # plt.imsave("fig/gamma.vv.95.png", im95, cmap='gray')
-    # plt.imsave("fig/gamma.vv.99.png", im99, cmap='gray')
+    gamma_test(april, may, "hhhh", 12, 0.01)
+    gamma_test(april, may, "hvhv", 12, 0.01)
+    gamma_test(april, may, "vvvv", 12, 0.01)
 
     # Wishart test
     # f, ax, im = wishart_change_detection(april, may, 13, 13)
