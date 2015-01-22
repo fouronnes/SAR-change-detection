@@ -101,18 +101,33 @@ class Wishart(object):
 
         # Overlay pdf
         p = 3
-        x = np.linspace(0, 50, 1000)
+        x = np.linspace(0, 40, 1000)
         chi2 = scipy.stats.chi2
         y = chi2.pdf(x, p**2) + self.w2*(chi2.pdf(x, p**2+4) - chi2.pdf(x, p**2))
         ax.plot(x, y, color="black", linewidth=2)
 
+        ax.set_xlim([0, 40])
+
         return f, ax
 
     def image_binary(self, percent):
-        threshold = 30
+        # Select threshold from chi2 percentile (ignore w2 term)
+        p = 3
+        chi2 = scipy.stats.chi2(p**2)
+        threshold = chi2.ppf(1.0 - percent)
+
         im = np.zeros_like(self.lnq)
         im[-2*self.rho*self.lnq > threshold] = 1
         return im
+
+    def image_linear(self, p1, p2):
+        # Select threshold from chi2 percentile (ignore w2 term)
+        p = 3
+        chi2 = scipy.stats.chi2(p**2)
+        t1 = chi2.ppf(1.0 - p1)
+        t2 = chi2.ppf(1.0 - p2)
+
+        return matplotlib.colors.normalize(t1, t2, clip=True)(-2*self.rho*self.lnq)
 
 def multiENL_gamma(april, may):
     gamma = Gamma(april, may, 13, 13)
@@ -140,7 +155,7 @@ def multiENL_gamma(april, may):
         mode = (ENL - 1)/(ENL+1)
         xtext = 0.4 if ENL%2 == 0 else 1.3
         ax.annotate('{}'.format(ENL), xy=(mode, F.pdf(mode)), xytext=(xtext, F.pdf(mode)),
-            arrowprops=dict(facecolor='black', shrink=0.05, width=1, headwidth=4),
+            arrowprops=dict(facecolor='black', shrink=0.05, width=.5, headwidth=2),
             fontsize=11,
             horizontalalignment='right',
             verticalalignment='center'
@@ -215,7 +230,7 @@ if __name__ == "__main__":
         w = Wishart(april, may, ENL, ENL)
         wno = Wishart(april_no_change, may_no_change, ENL, ENL)
 
-        f, ax = wno.histogram(0.01)
+        f, ax = wno.histogram(percent)
         hist_title = (r"$-2 \rho \ln Q$ distribution in no change region ENL={}"
                 .format(ENL))
         hist_filename = "fig/lnq.hist.ENL{}.pdf".format(ENL)
@@ -223,13 +238,23 @@ if __name__ == "__main__":
         # ax.set_title(hist_title)
         f.savefig(hist_filename, bbox_inches='tight')
 
-        im = w.image_binary(0.30)
-        plt.imsave("fig/lnq.png", im, cmap="gray")
+        im = w.image_binary(percent)
+        plt.imsave("fig/lnq.ENL{0}.{1}.png".format(ENL, percent), im, cmap="gray")
 
-    wishart_test(11, 0.30)
-    wishart_test(12, 0.30)
-    wishart_test(13, 0.30)
-    wishart_test(14, 0.30)
+    wishart_test(13, 0.00001)
+    wishart_test(13, 0.0001)
+    wishart_test(13, 0.001)
+    wishart_test(13, 0.01)
+    wishart_test(13, 0.05)
+
+    wishart_test(11, 0.01)
+    wishart_test(12, 0.01)
+    wishart_test(13, 0.01)
+    wishart_test(14, 0.01)
+
+    w = Wishart(april, may, 13, 13)
+    im = w.image_linear(0.01, 0.00001)
+    plt.imsave("fig/lnq.linear.png", im, cmap="gray")
 
     plt.close('all')
 
