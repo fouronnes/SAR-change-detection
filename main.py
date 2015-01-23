@@ -69,18 +69,26 @@ class Gamma(object):
         pass
 
 def block_diagonal(X, Y, n, m):
-    pass
+    p = 3
+    detX = X.hhhh*X.hvhv*X.vvvv
+    detY = Y.hhhh*Y.hvhv*Y.vvvv
+    detXY = (X.hhhh+Y.hhhh)*(X.hvhv+Y.hvhv)*(X.vvvv+Y.vvvv)
+    return (p*(n+m)*np.log(n+m) - p*n*np.log(n) - p*m*np.log(m)
+            + n*np.log(detX) + m*np.log(detY) - (n+m)*np.log(detXY))
 
 def azimuthal_symmetry(X, Y, n, m):
-    pass
+    p = 3
+    detX = np.real(X.hvhv*(X.hhhh*X.vvvv - X.hhvv*np.conj(X.hhvv)))
+    detY = np.real(Y.hvhv*(Y.hhhh*Y.vvvv - Y.hhvv*np.conj(Y.hhvv)))
+    detXY = np.real((X.hvhv+Y.hvhv) * ((X.hhhh+Y.hhhh)*(X.vvvv+Y.vvvv) - (X.hhvv+Y.hhvv)*(np.conj(X.hhvv)+np.conj(Y.hhvv))))
+    return (p*(n+m)*np.log(n+m) - p*n*np.log(n) - p*m*np.log(m)
+            + n*np.log(detX) + m*np.log(detY) - (n+m)*np.log(detXY))
 
 def full_covariance(X, Y, n, m):
     p = 3
     detX = determinant(X)
     detY = determinant(Y)
     detXY = determinant(sar_sum(X, Y))
-
-    # Test statistic
     return (p*(n+m)*np.log(n+m) - p*n*np.log(n) - p*m*np.log(m)
             + n*np.log(detX) + m*np.log(detY) - (n+m)*np.log(detXY))
 
@@ -270,6 +278,20 @@ if __name__ == "__main__":
     wishart_test("full", 12, 0.01)
     wishart_test("full", 13, 0.01)
     wishart_test("full", 14, 0.01)
+
+    wishart_test("diagonal", 13, 0.00001)
+    wishart_test("diagonal", 13, 0.0001)
+    wishart_test("diagonal", 13, 0.001)
+    wishart_test("diagonal", 13, 0.01)
+    wishart_test("diagonal", 13, 0.05)
+    wishart_test("diagonal", 13, 0.10)
+
+    wishart_test("azimuthal", 13, 0.00001)
+    wishart_test("azimuthal", 13, 0.0001)
+    wishart_test("azimuthal", 13, 0.001)
+    wishart_test("azimuthal", 13, 0.01)
+    wishart_test("azimuthal", 13, 0.05)
+    wishart_test("azimuthal", 13, 0.10)
 
     w = Wishart(april, may, 13, 13, "full")
     im = w.image_linear(0.01, 0.00001)
