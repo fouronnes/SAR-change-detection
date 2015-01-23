@@ -73,24 +73,47 @@ def block_diagonal(X, Y, n, m):
     detX = X.hhhh*X.hvhv*X.vvvv
     detY = Y.hhhh*Y.hvhv*Y.vvvv
     detXY = (X.hhhh+Y.hhhh)*(X.hvhv+Y.hvhv)*(X.vvvv+Y.vvvv)
-    return (p*(n+m)*np.log(n+m) - p*n*np.log(n) - p*m*np.log(m)
+
+    lnq = (p*(n+m)*np.log(n+m) - p*n*np.log(n) - p*m*np.log(m)
             + n*np.log(detX) + m*np.log(detY) - (n+m)*np.log(detXY))
+    # same as full covariance ??
+    rho = 1 - (2*p*p - 1)/(6*p) * (1/n + 1/m - 1/(n+m))
+    w2 = (-(p*p/4)*(1-1/rho)**2 + p*p*(p*p - 1)/24 * (1/(n*n) + 1/(m*m) - 1/((n+m)**2))*1/(p*p))
+
+    return lnq, rho, w2
 
 def azimuthal_symmetry(X, Y, n, m):
-    p = 3
+    p1 = 2
+    p2 = 1
+    p = np.sqrt(p1**2 + p2**2)
+
     detX = np.real(X.hvhv*(X.hhhh*X.vvvv - X.hhvv*np.conj(X.hhvv)))
     detY = np.real(Y.hvhv*(Y.hhhh*Y.vvvv - Y.hhvv*np.conj(Y.hhvv)))
     detXY = np.real((X.hvhv+Y.hvhv) * ((X.hhhh+Y.hhhh)*(X.vvvv+Y.vvvv) - (X.hhvv+Y.hhvv)*(np.conj(X.hhvv)+np.conj(Y.hhvv))))
-    return (p*(n+m)*np.log(n+m) - p*n*np.log(n) - p*m*np.log(m)
+
+    lnq = (p*(n+m)*np.log(n+m) - p*n*np.log(n) - p*m*np.log(m)
             + n*np.log(detX) + m*np.log(detY) - (n+m)*np.log(detXY))
+
+    rho1 = 1 - (2*p1**2 - 1)/(6*p1) * (1/n + 1/m - 1/(n+m))
+    rho2 = 1 - (2*p2**2 - 1)/(6*p2) * (1/n + 1/m - 1/(n+m))
+    rho = 1/p**2 * (p1**2 * rho1 + p2**2 * rho2)
+
+    w2 = - p**2/4 * (1-1/rho)**2 + (p1**2*(p1**2-1) + p2**2*(p2**2-1))/24 * (1/n**2 + 1/m**2 - 1/(n+m)**2) * 1/rho**2
+
+    return lnq, rho, w2
 
 def full_covariance(X, Y, n, m):
     p = 3
     detX = determinant(X)
     detY = determinant(Y)
     detXY = determinant(sar_sum(X, Y))
-    return (p*(n+m)*np.log(n+m) - p*n*np.log(n) - p*m*np.log(m)
+
+    lnq = (p*(n+m)*np.log(n+m) - p*n*np.log(n) - p*m*np.log(m)
             + n*np.log(detX) + m*np.log(detY) - (n+m)*np.log(detXY))
+    rho = 1 - (2*p*p - 1)/(6*p) * (1/n + 1/m - 1/(n+m))
+    w2 = (-(p*p/4)*(1-1/rho)**2 + p*p*(p*p - 1)/24 * (1/(n*n) + 1/(m*m) - 1/((n+m)**2))*1/(p*p))
+
+    return lnq, rho, w2
 
 class Wishart(object):
     def __init__(self, X, Y, n, m, mode):
@@ -101,19 +124,13 @@ class Wishart(object):
         self.mode = mode
 
         if mode == "diagonal":
-            self.lnq = block_diagonal(X, Y, n, m)
+            self.lnq, self.rho, self.w2 = block_diagonal(X, Y, n, m)
         elif mode == "azimuthal":
-            self.lnq = azimuthal_symmetry(X, Y, n, m)
+            self.lnq, self.rho, self.w2 = azimuthal_symmetry(X, Y, n, m)
         elif mode == "full":
-            self.lnq = full_covariance(X, Y, n, m)
+            self.lnq, self.rho, self.w2 = full_covariance(X, Y, n, m)
         else:
             raise RuntimeError("Invalid Wishard test mode:" + repr(mode))
-
-        p = 3
-        self.rho = 1 - (2*p*p - 1)/(6*p) * (1/n + 1/m - 1/(n+m))
-
-        self.w2 = (-(p*p/4)*(1-1/self.rho)**2
-                + p*p*(p*p - 1)/24 * (1/(n*n) + 1/(m*m) - 1/((n+m)**2))*1/(p*p))
 
     def histogram(self, percent):
         f = plt.figure(figsize=(8, 4))
