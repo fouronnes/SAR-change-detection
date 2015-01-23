@@ -68,22 +68,40 @@ class Gamma(object):
     def image_linear(self, percentile):
         pass
 
+def block_diagonal(X, Y, n, m):
+    pass
+
+def azimuthal_symmetry(X, Y, n, m):
+    pass
+
+def full_covariance(X, Y, n, m):
+    p = 3
+    detX = determinant(X)
+    detY = determinant(Y)
+    detXY = determinant(sar_sum(X, Y))
+
+    # Test statistic
+    return (p*(n+m)*np.log(n+m) - p*n*np.log(n) - p*m*np.log(m)
+            + n*np.log(detX) + m*np.log(detY) - (n+m)*np.log(detXY))
+
 class Wishart(object):
-    def __init__(self, X, Y, n, m):
+    def __init__(self, X, Y, n, m, mode):
         self.X = X
         self.Y = Y
         self.n = n
         self.m = m
+        self.mode = mode
+
+        if mode == "diagonal":
+            self.lnq = block_diagonal(X, Y, n, m)
+        elif mode == "azimuthal":
+            self.lnq = azimuthal_symmetry(X, Y, n, m)
+        elif mode == "full":
+            self.lnq = full_covariance(X, Y, n, m)
+        else:
+            raise RuntimeError("Invalid Wishard test mode:" + repr(mode))
 
         p = 3
-        detX = determinant(X)
-        detY = determinant(Y)
-        detXY = determinant(sar_sum(X, Y))
-
-        # Test statistic
-        self.lnq = (p*(n+m)*np.log(n+m) - p*n*np.log(n) - p*m*np.log(m)
-                + n*np.log(detX) + m*np.log(detY) - (n+m)*np.log(detXY))
-
         self.rho = 1 - (2*p*p - 1)/(6*p) * (1/n + 1/m - 1/(n+m))
 
         self.w2 = (-(p*p/4)*(1-1/self.rho)**2
@@ -226,34 +244,34 @@ if __name__ == "__main__":
 
     ## Wishart
 
-    def wishart_test(ENL, percent):
-        w = Wishart(april, may, ENL, ENL)
-        wno = Wishart(april_no_change, may_no_change, ENL, ENL)
+    def wishart_test(mode, ENL, percent):
+        w = Wishart(april, may, ENL, ENL, mode)
+        wno = Wishart(april_no_change, may_no_change, ENL, ENL, mode)
 
         f, ax = wno.histogram(percent)
         hist_title = (r"$-2 \rho \ln Q$ distribution in no change region ENL={}"
                 .format(ENL))
-        hist_filename = "fig/wishart/lnq.hist.ENL{}.pdf".format(ENL)
+        hist_filename = "fig/wishart/{}/lnq.hist.ENL{}.pdf".format(mode, ENL)
 
         # ax.set_title(hist_title)
         f.savefig(hist_filename, bbox_inches='tight')
 
         im = w.image_binary(percent)
-        plt.imsave("fig/wishart/lnq.ENL{0}.{1}.png".format(ENL, percent), im, cmap="gray")
+        plt.imsave("fig/wishart/{}/lnq.ENL{}.{}.png".format(mode, ENL, percent), im, cmap="gray")
 
-    wishart_test(13, 0.00001)
-    wishart_test(13, 0.0001)
-    wishart_test(13, 0.001)
-    wishart_test(13, 0.01)
-    wishart_test(13, 0.05)
-    wishart_test(13, 0.10)
+    wishart_test("full", 13, 0.00001)
+    wishart_test("full", 13, 0.0001)
+    wishart_test("full", 13, 0.001)
+    wishart_test("full", 13, 0.01)
+    wishart_test("full", 13, 0.05)
+    wishart_test("full", 13, 0.10)
 
-    wishart_test(11, 0.01)
-    wishart_test(12, 0.01)
-    wishart_test(13, 0.01)
-    wishart_test(14, 0.01)
+    wishart_test("full", 11, 0.01)
+    wishart_test("full", 12, 0.01)
+    wishart_test("full", 13, 0.01)
+    wishart_test("full", 14, 0.01)
 
-    w = Wishart(april, may, 13, 13)
+    w = Wishart(april, may, 13, 13, "full")
     im = w.image_linear(0.01, 0.00001)
     plt.imsave("fig/wishart/lnq.linear.png", im, cmap="gray")
 
