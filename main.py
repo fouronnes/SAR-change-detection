@@ -199,8 +199,8 @@ if __name__ == "__main__":
         short_channel = channel[:2].upper()
         hist_title = ("Likelihood ratio distribution of no change region {} ENL={}"
             .format(short_channel, ENL))
-        hist_filename = "fig/gamma.hist.ENL{0}.{1}.{2:.2f}.pdf".format(ENL, short_channel, percent)
-        im_filename = "fig/gamma.im.ENL{0}.{1}.{2:.2f}.png".format(ENL, short_channel, percent)
+        hist_filename = "fig/gamma/gamma.hist.ENL{0}.{1}.{2:.2f}.pdf".format(ENL, short_channel, percent)
+        im_filename = "fig/gamma/gamma.im.ENL{0}.{1}.{2:.2f}.png".format(ENL, short_channel, percent)
 
         # No change region histogram
         gno = Gamma(Xno, Yno, ENL, ENL)
@@ -222,7 +222,7 @@ if __name__ == "__main__":
     gamma_test(april, may, "vvvv", 12, 0.01)
 
     f, ax = multiENL_gamma(april_no_change.hhhh, may_no_change.hhhh)
-    f.savefig("fig/gamma.multiENL.HH.pdf", bbox_inches='tight')
+    f.savefig("fig/gamma/gamma.multiENL.HH.pdf", bbox_inches='tight')
 
     ## Wishart
 
@@ -233,19 +233,20 @@ if __name__ == "__main__":
         f, ax = wno.histogram(percent)
         hist_title = (r"$-2 \rho \ln Q$ distribution in no change region ENL={}"
                 .format(ENL))
-        hist_filename = "fig/lnq.hist.ENL{}.pdf".format(ENL)
+        hist_filename = "fig/wishart/lnq.hist.ENL{}.pdf".format(ENL)
 
         # ax.set_title(hist_title)
         f.savefig(hist_filename, bbox_inches='tight')
 
         im = w.image_binary(percent)
-        plt.imsave("fig/lnq.ENL{0}.{1}.png".format(ENL, percent), im, cmap="gray")
+        plt.imsave("fig/wishart/lnq.ENL{0}.{1}.png".format(ENL, percent), im, cmap="gray")
 
     wishart_test(13, 0.00001)
     wishart_test(13, 0.0001)
     wishart_test(13, 0.001)
     wishart_test(13, 0.01)
     wishart_test(13, 0.05)
+    wishart_test(13, 0.10)
 
     wishart_test(11, 0.01)
     wishart_test(12, 0.01)
@@ -254,7 +255,7 @@ if __name__ == "__main__":
 
     w = Wishart(april, may, 13, 13)
     im = w.image_linear(0.01, 0.00001)
-    plt.imsave("fig/lnq.linear.png", im, cmap="gray")
+    plt.imsave("fig/wishart/lnq.linear.png", im, cmap="gray")
 
     plt.close('all')
 
