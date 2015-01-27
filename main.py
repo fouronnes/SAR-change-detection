@@ -111,7 +111,7 @@ def full_covariance(X, Y, n, m):
     lnq = (p*(n+m)*np.log(n+m) - p*n*np.log(n) - p*m*np.log(m)
             + n*np.log(detX) + m*np.log(detY) - (n+m)*np.log(detXY))
     rho = 1 - (2*p*p - 1)/(6*p) * (1/n + 1/m - 1/(n+m))
-    w2 = (-(p*p/4)*(1-1/rho)**2 + p*p*(p*p - 1)/24 * (1/(n*n) + 1/(m*m) - 1/((n+m)**2))*1/(p*p))
+    w2 = (-(p*p/4)*(1-1/rho)**2 + p*p*(p*p - 1)/24 * (1/(n*n) + 1/(m*m) - 1/((n+m)**2))*1/(rho*rho))
 
     return lnq, rho, w2
 
@@ -313,6 +313,12 @@ if __name__ == "__main__":
     w = Wishart(april, may, 13, 13, "full")
     im = w.image_linear(0.01, 0.00001)
     plt.imsave("fig/wishart/lnq.linear.png", im, cmap="gray")
+
+    # Rho and omega2 plots
+    f, ax = rho_plot()
+    f.savefig("fig/wishart/rho.pdf", bbox_inches='tight')
+    f, ax = omega2_plot()
+    f.savefig("fig/wishart/omega2.pdf", bbox_inches='tight')
 
     plt.close('all')
 
