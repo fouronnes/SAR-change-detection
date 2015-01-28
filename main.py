@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import matplotlib.colors
 from sar_data import *
 from plotting import *
+from gamma import *
+from wishart import *
 
 # Ranges defining the forest region of the image
 no_change_i = range(307, 455)
@@ -10,167 +12,6 @@ no_change_j = range(52, 120)
 
 def aregion(X):
     return X[np.ix_(no_change_i, no_change_j)]
-
-class Gamma(object):
-    """
-    Test statistic on equality of two Gamma parameters
-    Use for change detection between two single channel SAR images X and Y
-    n, m are Equivalent Number of Looks (ENL)
-    """
-
-    def __init__(self, X, Y, n, m):
-        self.X = X
-        self.Y = Y
-        self.n = n
-        self.m = m
-        self.Q = Y/X # Test statistic
-
-    def histogram(self, percentile):
-        f = plt.figure(figsize=(8, 4))
-        ax = f.add_subplot(111)
-        ax.hist(self.Q.flatten(), bins=100, normed=True, range=(0,5), color='#3F5D7D')
-
-        ax.spines["top"].set_visible(False)
-        ax.spines["right"].set_visible(False)
-        ax.get_xaxis().tick_bottom()
-        ax.get_yaxis().tick_left()
-
-        ax.set_xlabel('Test statistic')
-        ax.set_ylabel('Frequency')
-
-        ax.set_ylim([0, 1.1])
-
-        # Fisher's F overlay
-        F = scipy.stats.f(2*self.m, 2*self.n)
-        x = np.linspace(0, 5, 500)
-        ax.plot(x, F.pdf(x), color='black', linewidth=2)
-
-        # Select threshold from distrib quantile
-        t_inf, t_sup = F.ppf(percentile/2), F.ppf(1 - percentile/2)
-
-        # ax.axvline(t_inf, 0, 1, color='black', linestyle='--')
-        # ax.text(t_inf, 1.12, " 5% percentile")
-        # ax.axvline(t_sup, 0, 1, color='black', linestyle='--')
-        # ax.text(t_sup, 1.12, " 95% percentile")
-
-        return f, ax
-    
-    def image_binary(self, percentile):
-        F = scipy.stats.f(2*self.m, 2*self.n)
-        t_inf, t_sup = F.ppf(percentile/2), F.ppf(1 - percentile/2)
-
-        im = np.zeros_like(self.Q)
-        im[self.Q < t_inf] = 1
-        im[self.Q > t_sup] = 1
-
-        return im
-
-    def image_linear(self, percentile):
-        pass
-
-def block_diagonal(X, Y, n, m):
-    p = 3
-    detX = X.hhhh*X.hvhv*X.vvvv
-    detY = Y.hhhh*Y.hvhv*Y.vvvv
-    detXY = (X.hhhh+Y.hhhh)*(X.hvhv+Y.hvhv)*(X.vvvv+Y.vvvv)
-
-    lnq = (p*(n+m)*np.log(n+m) - p*n*np.log(n) - p*m*np.log(m)
-            + n*np.log(detX) + m*np.log(detY) - (n+m)*np.log(detXY))
-    # same as full covariance ??
-    rho = 1 - (2*p*p - 1)/(6*p) * (1/n + 1/m - 1/(n+m))
-    w2 = (-(p*p/4)*(1-1/rho)**2 + p*p*(p*p - 1)/24 * (1/(n*n) + 1/(m*m) - 1/((n+m)**2))*1/(p*p))
-
-    return lnq, rho, w2
-
-def azimuthal_symmetry(X, Y, n, m):
-    p1 = 2
-    p2 = 1
-    p = np.sqrt(p1**2 + p2**2)
-
-    detX = np.real(X.hvhv*(X.hhhh*X.vvvv - X.hhvv*np.conj(X.hhvv)))
-    detY = np.real(Y.hvhv*(Y.hhhh*Y.vvvv - Y.hhvv*np.conj(Y.hhvv)))
-    detXY = np.real((X.hvhv+Y.hvhv) * ((X.hhhh+Y.hhhh)*(X.vvvv+Y.vvvv) - (X.hhvv+Y.hhvv)*(np.conj(X.hhvv)+np.conj(Y.hhvv))))
-
-    lnq = (p*(n+m)*np.log(n+m) - p*n*np.log(n) - p*m*np.log(m)
-            + n*np.log(detX) + m*np.log(detY) - (n+m)*np.log(detXY))
-
-    rho1 = 1 - (2*p1**2 - 1)/(6*p1) * (1/n + 1/m - 1/(n+m))
-    rho2 = 1 - (2*p2**2 - 1)/(6*p2) * (1/n + 1/m - 1/(n+m))
-    rho = 1/p**2 * (p1**2 * rho1 + p2**2 * rho2)
-
-    w2 = - p**2/4 * (1-1/rho)**2 + (p1**2*(p1**2-1) + p2**2*(p2**2-1))/24 * (1/n**2 + 1/m**2 - 1/(n+m)**2) * 1/rho**2
-
-    return lnq, rho, w2
-
-def full_covariance(X, Y, n, m):
-    p = 3
-    detX = determinant(X)
-    detY = determinant(Y)
-    detXY = determinant(sar_sum(X, Y))
-
-    lnq = (p*(n+m)*np.log(n+m) - p*n*np.log(n) - p*m*np.log(m)
-            + n*np.log(detX) + m*np.log(detY) - (n+m)*np.log(detXY))
-    rho = 1 - (2*p*p - 1)/(6*p) * (1/n + 1/m - 1/(n+m))
-    w2 = (-(p*p/4)*(1-1/rho)**2 + p*p*(p*p - 1)/24 * (1/(n*n) + 1/(m*m) - 1/((n+m)**2))*1/(rho*rho))
-
-    return lnq, rho, w2
-
-class Wishart(object):
-    def __init__(self, X, Y, n, m, mode):
-        self.X = X
-        self.Y = Y
-        self.n = n
-        self.m = m
-        self.mode = mode
-
-        if mode == "diagonal":
-            self.lnq, self.rho, self.w2 = block_diagonal(X, Y, n, m)
-        elif mode == "azimuthal":
-            self.lnq, self.rho, self.w2 = azimuthal_symmetry(X, Y, n, m)
-        elif mode == "full":
-            self.lnq, self.rho, self.w2 = full_covariance(X, Y, n, m)
-        else:
-            raise RuntimeError("Invalid Wishard test mode:" + repr(mode))
-
-    def histogram(self, percent):
-        f = plt.figure(figsize=(8, 4))
-        ax = f.add_subplot(111)
-        ax.hist(-2*self.rho*self.lnq.flatten(), bins=100, normed=True, color="#3F5D7D")
-
-        ax.spines["top"].set_visible(False)
-        ax.spines["right"].set_visible(False)
-        ax.get_xaxis().tick_bottom()
-        ax.get_yaxis().tick_left()
-
-        # Overlay pdf
-        p = 3
-        x = np.linspace(0, 40, 1000)
-        chi2 = scipy.stats.chi2
-        y = chi2.pdf(x, p**2) + self.w2*(chi2.pdf(x, p**2+4) - chi2.pdf(x, p**2))
-        ax.plot(x, y, color="black", linewidth=2)
-
-        ax.set_xlim([0, 40])
-
-        return f, ax
-
-    def image_binary(self, percent):
-        # Select threshold from chi2 percentile (ignore w2 term)
-        p = 3
-        chi2 = scipy.stats.chi2(p**2)
-        threshold = chi2.ppf(1.0 - percent)
-
-        im = np.zeros_like(self.lnq)
-        im[-2*self.rho*self.lnq > threshold] = 1
-        return im
-
-    def image_linear(self, p1, p2):
-        # Select threshold from chi2 percentile (ignore w2 term)
-        p = 3
-        chi2 = scipy.stats.chi2(p**2)
-        t1 = chi2.ppf(1.0 - p1)
-        t2 = chi2.ppf(1.0 - p2)
-
-        return matplotlib.colors.normalize(t1, t2, clip=True)(-2*self.rho*self.lnq)
 
 def multiENL_gamma(april, may):
     gamma = Gamma(april, may, 13, 13)
@@ -270,17 +111,23 @@ if __name__ == "__main__":
     ## Wishart
 
     def wishart_test(mode, ENL, percent):
+        # Test statistic over the whole area
         w = Wishart(april, may, ENL, ENL, mode)
+
+        # Test statistic over the no change region
         wno = Wishart(april_no_change, may_no_change, ENL, ENL, mode)
 
+        # Histogram, no change region
         f, ax = wno.histogram(percent)
-        hist_title = (r"$-2 \rho \ln Q$ distribution in no change region ENL={}"
-                .format(ENL))
         hist_filename = "fig/wishart/{}/lnq.hist.ENL{}.pdf".format(mode, ENL)
-
-        # ax.set_title(hist_title)
         f.savefig(hist_filename, bbox_inches='tight')
 
+        # Histogram, entire region
+        f, ax = w.histogram(percent)
+        hist_filename = "fig/wishart/{}/lnq.hist.total.ENL{}.pdf".format(mode, ENL)
+        f.savefig(hist_filename, bbox_inches='tight')
+
+        # Binary image
         im = w.image_binary(percent)
         plt.imsave("fig/wishart/{}/lnq.ENL{}.{}.png".format(mode, ENL, percent), im, cmap="gray")
 
