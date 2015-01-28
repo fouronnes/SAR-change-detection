@@ -67,8 +67,8 @@ if __name__ == "__main__":
     may_no_change = region(may, no_change_i, no_change_j)
 
     # Color composites
-    plt.imsave("fig/april.png", color_composite(april))
-    plt.imsave("fig/may.png", color_composite(may))
+    plt.imsave("fig/april.jpg", color_composite(april))
+    plt.imsave("fig/may.jpg", color_composite(may))
 
     ## Gamma
 
@@ -84,7 +84,7 @@ if __name__ == "__main__":
         hist_title = ("Likelihood ratio distribution of no change region {} ENL={}"
             .format(short_channel, ENL))
         hist_filename = "fig/gamma/gamma.hist.ENL{0}.{1}.{2:.2f}.pdf".format(ENL, short_channel, percent)
-        im_filename = "fig/gamma/gamma.im.ENL{0}.{1}.{2:.2f}.png".format(ENL, short_channel, percent)
+        im_filename = "fig/gamma/gamma.im.ENL{0}.{1}.{2:.2f}.jpg".format(ENL, short_channel, percent)
 
         # No change region histogram
         gno = Gamma(Xno, Yno, ENL, ENL)
@@ -129,7 +129,7 @@ if __name__ == "__main__":
 
         # Binary image
         im = w.image_binary(percent)
-        plt.imsave("fig/wishart/{}/lnq.ENL{}.{}.png".format(mode, ENL, percent), im, cmap="gray")
+        plt.imsave("fig/wishart/{}/lnq.ENL{}.{}.jpg".format(mode, ENL, percent), im, cmap="gray")
 
     wishart_test("full", 13, 0.00001)
     wishart_test("full", 13, 0.0001)
@@ -159,7 +159,7 @@ if __name__ == "__main__":
 
     w = Wishart(april, may, 13, 13, "full")
     im = w.image_linear(0.01, 0.00001)
-    plt.imsave("fig/wishart/lnq.linear.png", im, cmap="gray")
+    plt.imsave("fig/wishart/lnq.linear.jpg", im, cmap="gray")
 
     # Rho and omega2 plots
     f, ax = rho_plot()
