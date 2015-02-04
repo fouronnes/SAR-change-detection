@@ -71,7 +71,7 @@ class Wishart(object):
     def histogram(self, percent):
         f = plt.figure(figsize=(8, 4))
         ax = f.add_subplot(111)
-        ax.hist(-2*self.rho*self.lnq.flatten(), bins=100, normed=True, color="#3F5D7D")
+        ax.hist(-2*self.lnq.flatten(), bins=100, normed=True, color="#3F5D7D")
 
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
@@ -96,7 +96,7 @@ class Wishart(object):
         threshold = chi2.ppf(1.0 - percent)
 
         im = np.zeros_like(self.lnq)
-        im[-2*self.rho*self.lnq > threshold] = 1
+        im[-2*self.lnq > threshold] = 1
         return im
 
     def image_linear(self, p1, p2):
@@ -106,5 +106,5 @@ class Wishart(object):
         t1 = chi2.ppf(1.0 - p1)
         t2 = chi2.ppf(1.0 - p2)
 
-        return matplotlib.colors.normalize(t1, t2, clip=True)(-2*self.rho*self.lnq)
+        return matplotlib.colors.normalize(t1, t2, clip=True)(-2*self.lnq)
 
