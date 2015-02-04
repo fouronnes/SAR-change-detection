@@ -49,11 +49,11 @@ def multiENL_gamma(april, may):
     # overlay(8)
     overlay(9, "left")
     # overlay(10)
-    overlay(11)
+    overlay(11, "left")
     # overlay(12)
     overlay(13, "left")
     # overlay(14)
-    overlay(15)
+    overlay(15, "left")
     # overlay(16)
     overlay(17, "left")
 
@@ -105,6 +105,54 @@ def critical_region():
 
     ax.axvline(t_inf, color="black", linestyle="--")
     ax.axvline(t_sup, color="black", linestyle="--")
+
+    return f, ax
+
+def critical_region_wishart():
+    "Critical region figure"
+
+    percent = 0.10
+
+    f = plt.figure(figsize=(8, 3))
+    ax = f.add_subplot(111)
+
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.get_xaxis().tick_bottom()
+    ax.get_yaxis().tick_left()
+
+    ax.set_xlabel('Test statistic')
+    ax.set_ylabel('Frequency')
+
+    ax.set_ylim([0, 0.13])
+
+    # Chi2
+    ENL = 13
+    p = 3
+    chi2 = scipy.stats.chi2(p**2)
+    x = np.linspace(0, 25, 500)
+    y = chi2.pdf(x)
+    ax.plot(x, y, color='black', linewidth=1)
+    
+    # Thresholds
+    t = chi2.ppf(1 - percent)
+    ax.fill_between(x, y, where=(x < t), color='#3F5D7D')
+
+    ax.set_xticks([t])
+    ax.set_xticklabels([r"$T$"], size=16)
+
+    anotx = 7.05
+    ax.annotate(r'$\chi^2(p^2)$', xy=(anotx, chi2.pdf(anotx)), xytext=(anotx + 6, chi2.pdf(anotx)),
+        arrowprops=dict(facecolor='black', shrink=0.05, width=.3, headwidth=5),
+        fontsize=16,
+        horizontalalignment='right',
+        verticalalignment='center'
+        )
+
+    ax.text(4.5, 0.04, "No change", color="white", size=16)
+    ax.text(16, 0.04, "Change", color="black", size=16)
+
+    ax.axvline(t, color="black", linestyle="--")
 
     return f, ax
 
@@ -247,6 +295,10 @@ if __name__ == "__main__":
     f.savefig("fig/wishart/rho.pdf", bbox_inches='tight')
     f, ax = omega2_plot()
     f.savefig("fig/wishart/omega2.pdf", bbox_inches='tight')
+
+    # Wishart critical region figure
+    f, ax = critical_region_wishart()
+    f.savefig("fig/wishart/wishart.critical-region.pdf", bbox_inches='tight')
 
     plt.close('all')
 
