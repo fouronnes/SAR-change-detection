@@ -183,7 +183,6 @@ if __name__ == "__main__":
         hist_title = ("Likelihood ratio distribution of no change region {} ENL={}"
             .format(short_channel, ENL))
         hist_filename = "fig/gamma/gamma.hist.ENL{0}.{1}.{2}.pdf".format(ENL, short_channel, percent)
-        im_filename = "fig/gamma/gamma.im.ENL{0}.{1}.{2}.jpg".format(ENL, short_channel, percent)
 
         # No change region histogram
         gno = Gamma(Xno, Yno, ENL, ENL)
@@ -191,10 +190,23 @@ if __name__ == "__main__":
         # ax.set_title(hist_title)
         f.savefig(hist_filename, bbox_inches='tight')
 
-        # Binary image
+        ## Images
         g = Gamma(X, Y, ENL, ENL)
+
+        # Binary image
         im = g.image_binary(percent)
+        im_filename = "fig/gamma/gamma.im.ENL{0}.{1}.{2}.jpg".format(ENL, short_channel, percent)
         plt.imsave(im_filename, im, cmap='gray')
+
+        # Two level image, grayscale
+        im = g.image_color2(percent)
+        im_filename = "fig/gamma/gamma.color2.ENL{0}.{1}.{2}.jpg".format(ENL, short_channel, percent)
+        plt.imsave(im_filename, im, cmap="gray", vmin=0, vmax=1)
+
+        # Two level image, color
+        im = g.image_color3(percent)
+        im_filename = "fig/gamma/gamma.color3.ENL{0}.{1}.{2}.jpg".format(ENL, short_channel, percent)
+        plt.imsave(im_filename, im)
 
     gamma_test(april, may, "hhhh", 13, 0.10)
     gamma_test(april, may, "hvhv", 13, 0.10)

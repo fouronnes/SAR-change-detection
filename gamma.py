@@ -57,6 +57,35 @@ class Gamma(object):
 
         return im
 
+    def image_color2(self, percentile):
+        """
+        Change detection image with two colors indicating the change direction
+        Black - Gray - White
+        """
+        F = scipy.stats.f(2*self.m, 2*self.n)
+        t_inf, t_sup = F.ppf(percentile/2), F.ppf(1 - percentile/2)
+
+        im = np.empty_like(self.Q)
+        im[:,:] = 0.5
+        im[self.Q < t_inf] = 0
+        im[self.Q > t_sup] = 1
+
+        return im
+
+    def image_color3(self, percentile):
+        """
+        Change detection image with blue/red indicating the change direction
+        """
+        F = scipy.stats.f(2*self.m, 2*self.n)
+        t_inf, t_sup = F.ppf(percentile/2), F.ppf(1 - percentile/2)
+
+        im = np.empty((self.Q.shape[0], self.Q.shape[1], 3))
+        im[:,:] = np.array([0, 0, 0])
+        im[self.Q < t_inf] = np.array([170, 63, 57])
+        im[self.Q > t_sup] = np.array([35, 100, 103])
+
+        return im
+
     def image_linear(self, percentile):
         pass
 
