@@ -2,6 +2,7 @@ import numpy as np
 import scipy.stats
 import matplotlib.pyplot as plt
 import matplotlib.colors
+from sar_data import *
 
 class Gamma(object):
     """
@@ -180,8 +181,6 @@ def critical_region():
     ax.axvline(t_sup, color="black", linestyle="--")
 
     return f, ax
-
-from sar_data import *
 
 print("Gamma test...")
 

@@ -30,7 +30,9 @@ class Omnibus(object):
     def image_binary(self, percent):
         # Select threshold from chi2 percentile (ignore w2 term)
         p = 3
-        chi2 = scipy.stats.chi2(p**2)
+        k = len(self.sar_list)
+        f = (k-1)*p**2
+        chi2 = scipy.stats.chi2(f)
         threshold = chi2.ppf(1.0 - percent)
 
         im = np.zeros_like(self.lnq)
@@ -41,3 +43,5 @@ class Omnibus(object):
         pass
 
 o = Omnibus([april, may, june, july], 13)
+
+im = o.image_binary(0.10)

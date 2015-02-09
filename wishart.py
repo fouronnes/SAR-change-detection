@@ -2,6 +2,7 @@ import numpy as np
 import scipy.stats
 import matplotlib.pyplot as plt
 import matplotlib.colors
+from sar_data import *
 
 def block_diagonal(X, Y, n, m):
     p = 3
@@ -154,8 +155,6 @@ def critical_region_wishart():
     ax.axvline(t, color="black", linestyle="--")
 
     return f, ax
-
-from sar_data import *
 
 def wishart_test(mode, ENL, percent):
     # Test statistic over the whole area
