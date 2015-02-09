@@ -14,12 +14,12 @@ def read_sar_file(path, dtype):
 def sar_sum(sar_list):
     "Sum of a list of SARData covariance matrices objects"
     s = SARData()
-    s.hhhh = np.add(*[X.hhhh for X in sar_list])
-    s.hhhv = np.add(*[X.hhhv for X in sar_list])
-    s.hvhv = np.add(*[X.hvhv for X in sar_list])
-    s.hhvv = np.add(*[X.hhvv for X in sar_list])
-    s.hvvv = np.add(*[X.hvvv for X in sar_list])
-    s.vvvv = np.add(*[X.vvvv for X in sar_list])
+    s.hhhh = sum([X.hhhh for X in sar_list])
+    s.hhhv = sum([X.hhhv for X in sar_list])
+    s.hvhv = sum([X.hvhv for X in sar_list])
+    s.hhvv = sum([X.hhvv for X in sar_list])
+    s.hvvv = sum([X.hvvv for X in sar_list])
+    s.vvvv = sum([X.vvvv for X in sar_list])
     return s
 
 def determinant(X):
@@ -49,24 +49,14 @@ class SARData(object):
     using covariance matrix representation
     """
 
-    def load_april(self):
-        "Load SARData object for April dataset"
-        self.hhhh = read_sar_file(root + '/fl063_l/fl063_lhhhh', np.float32)
-        self.hhhv = read_sar_file(root + '/fl063_l/fl063_lhhhv', np.complex64)
-        self.hvhv = read_sar_file(root + '/fl063_l/fl063_lhvhv', np.float32)
-        self.hhvv = read_sar_file(root + '/fl063_l/fl063_lhhvv', np.complex64)
-        self.hvvv = read_sar_file(root + '/fl063_l/fl063_lhvvv', np.complex64)
-        self.vvvv = read_sar_file(root + '/fl063_l/fl063_lvvvv', np.float32)
-        return self
-
-    def load_may(self):
-        "Load SARData object for May dataset"
-        self.hhhh = read_sar_file(root + '/fl064_l/fl064_lhhhh', np.float32)
-        self.hhhv = read_sar_file(root + '/fl064_l/fl064_lhhhv', np.complex64)
-        self.hvhv = read_sar_file(root + '/fl064_l/fl064_lhvhv', np.float32)
-        self.hhvv = read_sar_file(root + '/fl064_l/fl064_lhhvv', np.complex64)
-        self.hvvv = read_sar_file(root + '/fl064_l/fl064_lhvvv', np.complex64)
-        self.vvvv = read_sar_file(root + '/fl064_l/fl064_lvvvv', np.float32)
+    def load(self, code):
+        "Load SARData object for a given month code"
+        self.hhhh = read_sar_file(root + '/{}/{}hhhh'.format(code, code), np.float32)
+        self.hhhv = read_sar_file(root + '/{}/{}hhhv'.format(code, code), np.complex64)
+        self.hvhv = read_sar_file(root + '/{}/{}hvhv'.format(code, code), np.float32)
+        self.hhvv = read_sar_file(root + '/{}/{}hhvv'.format(code, code), np.complex64)
+        self.hvvv = read_sar_file(root + '/{}/{}hvvv'.format(code, code), np.complex64)
+        self.vvvv = read_sar_file(root + '/{}/{}vvvv'.format(code, code), np.float32)
         return self
 
 print("Loading SAR data...")
@@ -76,8 +66,12 @@ no_change_i = range(307, 455)
 no_change_j = range(52, 120)
 
 # Load data
-april = SARData().load_april()
-may = SARData().load_may()
+# march = SARData().load("fl062_l")
+april = SARData().load("fl063_l")
+may = SARData().load("fl064_l")
+june = SARData().load("fl065_l")
+july = SARData().load("fl068_l")
+# august = SARData().load("fl074_l")
 
 # No change region
 april_no_change = region(april, no_change_i, no_change_j)

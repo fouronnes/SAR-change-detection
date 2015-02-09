@@ -2,11 +2,7 @@ import numpy as np
 import scipy.stats
 import matplotlib.pyplot as plt
 import matplotlib.colors
-from sar_data import determinant, sar_sum
-
-def compute_omnibus(sar_list, n):
-    """Compute (ln Q) in the Omnibus test"""
-
+from sar_data import *
 
 class Omnibus(object):
     """
@@ -22,14 +18,14 @@ class Omnibus(object):
         self.sar_list = sar_list
         self.ENL = ENL
 
-        self.p = 3
-        self.k = len(sar_list)
-
+        p = 3
+        k = len(sar_list)
+        n = ENL
         X = sar_sum(sar_list)
         sum_term = np.sum([np.log(determinant(X)) for X in sar_list])
 
         # Omnibus test
-        self.lnq = n*(p*k* np.log(self.k) + sum_term - self.k*np.log(determinant(X)))
+        self.lnq = n*(p*k* np.log(k) + sum_term - k*np.log(determinant(X)))
 
     def image_binary(self, percent):
         # Select threshold from chi2 percentile (ignore w2 term)
@@ -44,3 +40,4 @@ class Omnibus(object):
     def image_linear(self, p1, p2):
         pass
 
+o = Omnibus([april, may, june, july], 13)
