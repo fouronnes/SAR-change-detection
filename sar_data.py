@@ -10,15 +10,15 @@ def read_sar_file(path, dtype):
     # Swap byte order
     return array.newbyteorder('S')
 
-def sar_sum(X, Y):
-    "Sum of two SARData covariance matrices objects"
+def sar_sum(sar_list):
+    "Sum of a list of SARData covariance matrices objects"
     s = SARData()
-    s.hhhh = X.hhhh + Y.hhhh
-    s.hhhv = X.hhhv + Y.hhhv
-    s.hvhv = X.hvhv + Y.hvhv
-    s.hhvv = X.hhvv + Y.hhvv
-    s.hvvv = X.hvvv + Y.hvvv
-    s.vvvv = X.vvvv + Y.vvvv
+    s.hhhh = np.sum([X.hhhh for X in sar_list])
+    s.hhhv = np.sum([X.hhhv for X in sar_list])
+    s.hvhv = np.sum([X.hvhv for X in sar_list])
+    s.hhvv = np.sum([X.hhvv for X in sar_list])
+    s.hvvv = np.sum([X.hvvv for X in sar_list])
+    s.vvvv = np.sum([X.vvvv for X in sar_list])
     return s
 
 def determinant(X):

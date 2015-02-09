@@ -42,7 +42,7 @@ def full_covariance(X, Y, n, m):
     p = 3
     detX = determinant(X)
     detY = determinant(Y)
-    detXY = determinant(sar_sum(X, Y))
+    detXY = determinant(sar_sum([X, Y]))
 
     lnq = (p*(n+m)*np.log(n+m) - p*n*np.log(n) - p*m*np.log(m)
             + n*np.log(detX) + m*np.log(detY) - (n+m)*np.log(detXY))
