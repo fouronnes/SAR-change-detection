@@ -69,6 +69,11 @@ class Wishart(object):
             raise RuntimeError("Invalid Wishart test mode:" + repr(mode))
 
     def histogram(self, percent):
+        """
+        Histogram of no change region
+        and pdf with only chi2 term
+        """
+
         f = plt.figure(figsize=(8, 4))
         ax = f.add_subplot(111)
         ax.hist(-2*self.lnq.flatten(), bins=100, normed=True, color="#3F5D7D")
@@ -82,7 +87,7 @@ class Wishart(object):
         p = 3
         x = np.linspace(0, 40, 1000)
         chi2 = scipy.stats.chi2
-        y = chi2.pdf(x, p**2) + self.w2*(chi2.pdf(x, p**2+4) - chi2.pdf(x, p**2))
+        y = chi2.pdf(x, p**2)
         ax.plot(x, y, color="black", linewidth=2)
 
         ax.set_xlim([0, 40])
