@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image
 import matplotlib.colors
-from sar_data import *
 
 def sar_show(channel):
     "Grayscale image of a single SAR channel"
