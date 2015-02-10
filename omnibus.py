@@ -75,10 +75,10 @@ class Omnibus(object):
         pass
 
 # Omnibus test of the entire image
-omnibus = Omnibus([april, may, june, july], 13)
+omnibus = Omnibus([march, april, may, june, july, august], 13)
 
 # Omnibus test over the no change region
-omnibus_no_change = Omnibus([april_no_change, may_no_change, june_no_change, july_no_change], 13)
+omnibus_no_change = Omnibus([march_no_change, april_no_change, may_no_change, june_no_change, july_no_change, august_no_change], 13)
 
 # Histogram over the no change region
 fig, ax = omnibus_no_change.histogram()
