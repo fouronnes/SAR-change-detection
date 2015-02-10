@@ -76,6 +76,8 @@ july = SARData().load("fl068_l")
 # No change region
 april_no_change = region(april, no_change_i, no_change_j)
 may_no_change = region(may, no_change_i, no_change_j)
+june_no_change = region(june, no_change_i, no_change_j)
+july_no_change = region(july, no_change_i, no_change_j)
 
 # Make color composites
 plt.imsave("fig/april.jpg", color_composite(april))
