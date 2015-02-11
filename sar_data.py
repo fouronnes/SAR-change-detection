@@ -34,16 +34,11 @@ def determinant(X):
          - X.hhhv*np.conj(X.hhhv)*X.vvvv
          - X.hhhh*X.hvvv*np.conj(X.hvvv)))
 
-def region(X, range_i, range_j):
-    "Extract sub-region of a SARData image"
-    s = SARData()
-    s.hhhh = X.hhhh[np.ix_(range_i, range_j)]
-    s.hhhv = X.hhhv[np.ix_(range_i, range_j)]
-    s.hvhv = X.hvhv[np.ix_(range_i, range_j)]
-    s.hhvv = X.hhvv[np.ix_(range_i, range_j)]
-    s.hvvv = X.hvvv[np.ix_(range_i, range_j)]
-    s.vvvv = X.vvvv[np.ix_(range_i, range_j)]
-    return s
+class Region(object):
+    "Defines a rectangular area in an image"
+    def __init__(self, range_i, range_j):
+        self.range_i = range_i
+        self.range_j = range_j
 
 class SARData(object):
     """
@@ -62,11 +57,23 @@ class SARData(object):
         self.vvvv = read_sar_file(root + '/{}/{}vvvv{}'.format(code, code, extension), np.float32, header)
         return self
 
+    def extract_region(self, region):
+        "Extract a subset of the SARData image defined by a Region object"
+        s = SARData()
+        s.hhhh = self.hhhh[np.ix_(region.range_i, region.range_j)]
+        s.hhhv = self.hhhv[np.ix_(region.range_i, region.range_j)]
+        s.hvhv = self.hvhv[np.ix_(region.range_i, region.range_j)]
+        s.hhvv = self.hhvv[np.ix_(region.range_i, region.range_j)]
+        s.hvvv = self.hvvv[np.ix_(region.range_i, region.range_j)]
+        s.vvvv = self.vvvv[np.ix_(region.range_i, region.range_j)]
+        return s
+
 print("Loading SAR data...")
 
-# Ranges defining the forest region of the image
-no_change_i = range(307, 455)
-no_change_j = range(52, 120)
+# Define notable regions in the SAR data set
+region_nochange = Region(range(307, 455), range(52, 120))
+region_rye = Region(range(116, 146), range(328, 411))
+region_grass = Region(range(268, 330), range(128, 234))
 
 # Load data
 march = SARData().load("fl062_l", header=True)
@@ -77,12 +84,12 @@ july = SARData().load("fl068_l", header=False)
 august = SARData().load("fl074_l", header=True)
 
 # No change region
-march_no_change = region(march, no_change_i, no_change_j)
-april_no_change = region(april, no_change_i, no_change_j)
-may_no_change = region(may, no_change_i, no_change_j)
-june_no_change = region(june, no_change_i, no_change_j)
-july_no_change = region(july, no_change_i, no_change_j)
-august_no_change = region(august, no_change_i, no_change_j)
+march_no_change  = march.extract_region(region_nochange)
+april_no_change  = april.extract_region(region_nochange)
+may_no_change    = may.extract_region(region_nochange)
+june_no_change   = june.extract_region(region_nochange)
+july_no_change   = july.extract_region(region_nochange)
+august_no_change = august.extract_region(region_nochange)
 
 # Make color composites
 plt.imsave("fig/april.jpg", color_composite(april))
