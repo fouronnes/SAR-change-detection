@@ -74,6 +74,8 @@ class Omnibus(object):
     def image_linear(self, p1, p2):
         pass
 
+print("Omnibus test...")
+
 # Omnibus test of the entire image
 omnibus = Omnibus([march, april, may, june, july, august], 13)
 
