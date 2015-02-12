@@ -81,10 +81,10 @@ class Omnibus(object):
 print("Omnibus test...")
 
 # Omnibus test of the entire image
-omnibus = Omnibus([march, april, may, june, july, august], 13)
+omnibus = Omnibus(sar_list, 13)
 
 # Omnibus test over the no change region
-omnibus_no_change = Omnibus([march_no_change, april_no_change, may_no_change, june_no_change, july_no_change, august_no_change], 13)
+omnibus_no_change = Omnibus(sar_list_nochange, 13)
 
 # Histogram over the no change region
 fig, ax = omnibus_no_change.histogram()
@@ -112,12 +112,26 @@ def average_probability(omnibus):
     rho = omnibus.rho
     lnq = omnibus.lnq
     f = omnibus.f
-
     return 1 - np.mean(scipy.stats.chi2.cdf( -2 * rho * lnq, df=f))
 
+# Pairwise test
+def average_test_for_region(r):
+    print("March = April :", average_probability(Omnibus([march.region(r), april.region(r)], 13)))
+    print("April = May   :", average_probability(Omnibus([april.region(r), may.region(r)], 13)))
+    print("May   = June  :", average_probability(Omnibus([may.region(r), june.region(r)], 13)))
+    print("June  = July  :", average_probability(Omnibus([june.region(r), july.region(r)], 13)))
+    print("July  = August:", average_probability(Omnibus([july.region(r), august.region(r)], 13)))
+    print("Omnibus       :", average_probability(Omnibus([X.region(r) for X in sar_list], 13)))
+
 # Omnibus test in notable regions
+print("")
+print("Forest:")
+average_test_for_region(region_nochange)
 
-print("Forest: ", average_probability(Omnibus([X.region(region_nochange) for X in sar_list], 13)))
-print("Rye: ", average_probability(Omnibus([X.region(region_rye) for X in sar_list], 13)))
-print("Grass: ", average_probability(Omnibus([X.region(region_grass) for X in sar_list], 13)))
+print("")
+print("Rye:")
+average_test_for_region(region_rye)
 
+print("")
+print("Grass:")
+average_test_for_region(region_grass)

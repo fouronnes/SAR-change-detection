@@ -71,6 +71,7 @@ class SARData(object):
 print("Loading SAR data...")
 
 # Define notable regions in the SAR data set
+region_complete = Region(range(0, 1024), range(0, 1024))
 region_nochange = Region(range(307, 455), range(52, 120))
 region_rye = Region(range(116, 146), range(328, 411))
 region_grass = Region(range(268, 330), range(128, 234))
@@ -83,9 +84,16 @@ june = SARData().load("fl065_l", header=False)
 july = SARData().load("fl068_l", header=False)
 august = SARData().load("fl074_l", header=True)
 
+# The complete time series
 sar_list = [march, april, may, june, july, august]
 
+# Time series of image regions
+sar_list_nochange = [X.region(region_nochange) for X in sar_list]
+sar_list_rye      = [X.region(region_rye)      for X in sar_list]
+sar_list_grass    = [X.region(region_grass)    for X in sar_list]
+
 # No change region
+# This is redundant with sar_list_nochange, but gamma.py uses this for now
 march_no_change  = march.region(region_nochange)
 april_no_change  = april.region(region_nochange)
 may_no_change    = may.region(region_nochange)
