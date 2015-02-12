@@ -57,7 +57,7 @@ class SARData(object):
         self.vvvv = read_sar_file(root + '/{}/{}vvvv{}'.format(code, code, extension), np.float32, header)
         return self
 
-    def extract_region(self, region):
+    def region(self, region):
         "Extract a subset of the SARData image defined by a Region object"
         s = SARData()
         s.hhhh = self.hhhh[np.ix_(region.range_i, region.range_j)]
@@ -83,13 +83,15 @@ june = SARData().load("fl065_l", header=False)
 july = SARData().load("fl068_l", header=False)
 august = SARData().load("fl074_l", header=True)
 
+sar_list = [march, april, may, june, july, august]
+
 # No change region
-march_no_change  = march.extract_region(region_nochange)
-april_no_change  = april.extract_region(region_nochange)
-may_no_change    = may.extract_region(region_nochange)
-june_no_change   = june.extract_region(region_nochange)
-july_no_change   = july.extract_region(region_nochange)
-august_no_change = august.extract_region(region_nochange)
+march_no_change  = march.region(region_nochange)
+april_no_change  = april.region(region_nochange)
+may_no_change    = may.region(region_nochange)
+june_no_change   = june.region(region_nochange)
+july_no_change   = july.region(region_nochange)
+august_no_change = august.region(region_nochange)
 
 # Make color composites
 plt.imsave("fig/april.jpg", color_composite(april))

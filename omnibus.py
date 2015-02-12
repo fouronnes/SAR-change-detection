@@ -21,6 +21,10 @@ class Omnibus(object):
         p = 3
         k = len(sar_list)
         n = ENL
+
+        self.f = (k-1)*p**2
+        self.rho = 1- (2*p**2 - 1)/(6*p*(k-1)) * (k/n - 1/(n*k))
+
         sum_term = sum([np.log(determinant(Xi)) for Xi in sar_list])
         X = sar_sum(sar_list)
 
@@ -103,4 +107,17 @@ omnibus_binary(0.001)
 omnibus_binary(0.01)
 omnibus_binary(0.05)
 omnibus_binary(0.10)
+
+def average_probability(omnibus):
+    rho = omnibus.rho
+    lnq = omnibus.lnq
+    f = omnibus.f
+
+    return 1 - np.mean(scipy.stats.chi2.cdf( -2 * rho * lnq, df=f))
+
+# Omnibus test in notable regions
+
+print("Forest: ", average_probability(Omnibus([X.region(region_nochange) for X in sar_list], 13)))
+print("Rye: ", average_probability(Omnibus([X.region(region_rye) for X in sar_list], 13)))
+print("Grass: ", average_probability(Omnibus([X.region(region_grass) for X in sar_list], 13)))
 
