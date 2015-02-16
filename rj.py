@@ -1,9 +1,21 @@
 import numpy as np
+from numpy import log
 import scipy.stats
 import matplotlib.pyplot as plt
 import matplotlib.colors
 from sar_data import *
 from omnibus import Omnibus
+
+def rj_test_statistic(n, j, sar_list):
+
+    p = 3
+    f = p**2
+    sum_j = determinant(sar_sum(sar_list))
+    sum_j_minus_1 = determinant(sar_sum(sar_list[:-1]))
+
+    lnR = n*(p*(j*log(j) - (j-1)*log(j-1)) + (j-1)*log(sum_j_minus_1) + log(determinant(sar_list[-1])) - j*log(sum_j))
+
+    return 1 - np.mean(scipy.stats.chi2.cdf( -2*lnR, df=f))
 
 class RjTest(object):
     """
@@ -37,7 +49,8 @@ class RjTest(object):
             self.H[l] = Omnibus(sar_list[l:], ENL)
 
             for s in range(1, k-l):
-                pass
+                # self.K[l, s] = rj_test_statistic(ENL, s, sar_list[:s])
+                print(rj_test_statistic(ENL, s, sar_list[:s]))
 
 if __name__ == "__main__":
 
@@ -52,16 +65,19 @@ if __name__ == "__main__":
     print("Rj test...")
     # rj_all = RjTest(sar_list, 13)
 
+    print("")
     print("Forest:")
     rj_nochange = RjTest(sar_list_nochange, 13)
-    print_pvalue_table(rj_nochange)
+    # print_pvalue_table(rj_nochange)
 
+    print("")
     print("Rye:")
     rj_rye = RjTest(sar_list_rye, 13)
-    print_pvalue_table(rj_rye)
+    # print_pvalue_table(rj_rye)
 
+    print("")
     print("Grass:")
     rj_grass = RjTest(sar_list_grass, 13)
-    print_pvalue_table(rj_grass)
+    # print_pvalue_table(rj_grass)
 
 

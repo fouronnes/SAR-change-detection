@@ -33,7 +33,7 @@ class Omnibus(object):
 
     def pvalue(self):
         "Average probability over the tested region"
-        return 1 - np.mean(scipy.stats.chi2.cdf( -2 * self.rho * self.lnq, df=self.f))
+        return 1 - np.mean(scipy.stats.chi2.cdf( -2 * self.lnq, df=self.f))
 
     def histogram(self):
         """
