@@ -31,6 +31,10 @@ class Omnibus(object):
         # Omnibus test
         self.lnq = n*(p*k*np.log(k) + sum_term - k*np.log(determinant(X)))
 
+    def pvalue(self):
+        "Average probability over the tested region"
+        return 1 - np.mean(scipy.stats.chi2.cdf( -2 * self.rho * self.lnq, df=self.f))
+
     def histogram(self):
         """
         Histogram of no change region
@@ -109,20 +113,14 @@ if __name__ == "__main__":
     omnibus_binary(0.05)
     omnibus_binary(0.10)
 
-    def average_probability(omnibus):
-        rho = omnibus.rho
-        lnq = omnibus.lnq
-        f = omnibus.f
-        return 1 - np.mean(scipy.stats.chi2.cdf( -2 * rho * lnq, df=f))
-
     # Pairwise test
     def average_test_for_region(r):
-        print("March = April :", average_probability(Omnibus([march.region(r), april.region(r)], 13)))
-        print("April = May   :", average_probability(Omnibus([april.region(r), may.region(r)], 13)))
-        print("May   = June  :", average_probability(Omnibus([may.region(r), june.region(r)], 13)))
-        print("June  = July  :", average_probability(Omnibus([june.region(r), july.region(r)], 13)))
-        print("July  = August:", average_probability(Omnibus([july.region(r), august.region(r)], 13)))
-        print("Omnibus       :", average_probability(Omnibus([X.region(r) for X in sar_list], 13)))
+        print("March = April :", Omnibus([march.region(r), april.region(r)], 13).pvalue())
+        print("April = May   :", Omnibus([april.region(r), may.region(r)], 13).pvalue())
+        print("May   = June  :", Omnibus([may.region(r), june.region(r)], 13).pvalue())
+        print("June  = July  :", Omnibus([june.region(r), july.region(r)], 13).pvalue())
+        print("July  = August:", Omnibus([july.region(r), august.region(r)], 13).pvalue())
+        print("Omnibus       :", Omnibus([X.region(r) for X in sar_list], 13).pvalue())
 
     # Omnibus test in notable regions
     print("")
