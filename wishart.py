@@ -182,47 +182,47 @@ def wishart_test(mode, ENL, percent):
     im = w.image_binary(percent)
     plt.imsave("fig/wishart/{}/lnq.ENL{}.{}.jpg".format(mode, ENL, percent), im, cmap="gray")
 
-print("Wishart test...")
+if __name__ == "__main__":
+    print("Wishart test...")
 
-wishart_test("full", 13, 0.00001)
-wishart_test("full", 13, 0.0001)
-wishart_test("full", 13, 0.001)
-wishart_test("full", 13, 0.01)
-wishart_test("full", 13, 0.05)
-wishart_test("full", 13, 0.10)
+    wishart_test("full", 13, 0.00001)
+    wishart_test("full", 13, 0.0001)
+    wishart_test("full", 13, 0.001)
+    wishart_test("full", 13, 0.01)
+    wishart_test("full", 13, 0.05)
+    wishart_test("full", 13, 0.10)
 
-wishart_test("full", 11, 0.01)
-wishart_test("full", 12, 0.01)
-wishart_test("full", 13, 0.01)
-wishart_test("full", 14, 0.01)
+    wishart_test("full", 11, 0.01)
+    wishart_test("full", 12, 0.01)
+    wishart_test("full", 13, 0.01)
+    wishart_test("full", 14, 0.01)
 
-wishart_test("diagonal", 13, 0.00001)
-wishart_test("diagonal", 13, 0.0001)
-wishart_test("diagonal", 13, 0.001)
-wishart_test("diagonal", 13, 0.01)
-wishart_test("diagonal", 13, 0.05)
-wishart_test("diagonal", 13, 0.10)
+    wishart_test("diagonal", 13, 0.00001)
+    wishart_test("diagonal", 13, 0.0001)
+    wishart_test("diagonal", 13, 0.001)
+    wishart_test("diagonal", 13, 0.01)
+    wishart_test("diagonal", 13, 0.05)
+    wishart_test("diagonal", 13, 0.10)
 
-wishart_test("azimuthal", 13, 0.00001)
-wishart_test("azimuthal", 13, 0.0001)
-wishart_test("azimuthal", 13, 0.001)
-wishart_test("azimuthal", 13, 0.01)
-wishart_test("azimuthal", 13, 0.05)
-wishart_test("azimuthal", 13, 0.10)
+    wishart_test("azimuthal", 13, 0.00001)
+    wishart_test("azimuthal", 13, 0.0001)
+    wishart_test("azimuthal", 13, 0.001)
+    wishart_test("azimuthal", 13, 0.01)
+    wishart_test("azimuthal", 13, 0.05)
+    wishart_test("azimuthal", 13, 0.10)
 
-w = Wishart(april, may, 13, 13, "full")
-im = w.image_linear(0.01, 0.00001)
-plt.imsave("fig/wishart/lnq.linear.jpg", im, cmap="gray")
+    w = Wishart(april, may, 13, 13, "full")
+    im = w.image_linear(0.01, 0.00001)
+    plt.imsave("fig/wishart/lnq.linear.jpg", im, cmap="gray")
 
-# Rho and omega2 plots
-f, ax = rho_plot()
-f.savefig("fig/wishart/rho.pdf", bbox_inches='tight')
-f, ax = omega2_plot()
-f.savefig("fig/wishart/omega2.pdf", bbox_inches='tight')
+    # Rho and omega2 plots
+    f, ax = rho_plot()
+    f.savefig("fig/wishart/rho.pdf", bbox_inches='tight')
+    f, ax = omega2_plot()
+    f.savefig("fig/wishart/omega2.pdf", bbox_inches='tight')
 
-# Wishart critical region figure
-f, ax = critical_region_wishart()
-f.savefig("fig/wishart/wishart.critical-region.pdf", bbox_inches='tight')
+    # Wishart critical region figure
+    f, ax = critical_region_wishart()
+    f.savefig("fig/wishart/wishart.critical-region.pdf", bbox_inches='tight')
 
-plt.close('all')
-
+    plt.close('all')

@@ -86,7 +86,7 @@ class Gamma(object):
         pass
 
 def aregion(X):
-    return X[np.ix_(no_change_i, no_change_j)]
+    return X[np.ix_(region_nochange.range_i, region_nochange.range_j)]
 
 def multiENL_gamma(april, may):
     gamma = Gamma(april, may, 13, 13)
@@ -182,83 +182,84 @@ def critical_region():
 
     return f, ax
 
-print("Gamma test...")
+if __name__ == "__main__":
+    print("Gamma test...")
 
-def gamma_test(april, may, channel, ENL, percent):
-    # Data
-    X = april.__dict__[channel]
-    Y = may.__dict__[channel]
-    Xno = aregion(X)
-    Yno = aregion(Y)
+    def gamma_test(april, may, channel, ENL, percent):
+        # Data
+        X = april.__dict__[channel]
+        Y = may.__dict__[channel]
+        Xno = aregion(X)
+        Yno = aregion(Y)
 
-    # Name variables
-    short_channel = channel[:2].upper()
-    hist_title = ("Likelihood ratio distribution of no change region {} ENL={}"
-        .format(short_channel, ENL))
-    hist_filename = "fig/gamma/gamma.hist.ENL{0}.{1}.{2}.pdf".format(ENL, short_channel, percent)
+        # Name variables
+        short_channel = channel[:2].upper()
+        hist_title = ("Likelihood ratio distribution of no change region {} ENL={}"
+            .format(short_channel, ENL))
+        hist_filename = "fig/gamma/gamma.hist.ENL{0}.{1}.{2}.pdf".format(ENL, short_channel, percent)
 
-    # No change region histogram
-    gno = Gamma(Xno, Yno, ENL, ENL)
-    f, ax = gno.histogram(percent)
-    # ax.set_title(hist_title)
-    f.savefig(hist_filename, bbox_inches='tight')
+        # No change region histogram
+        gno = Gamma(Xno, Yno, ENL, ENL)
+        f, ax = gno.histogram(percent)
+        # ax.set_title(hist_title)
+        f.savefig(hist_filename, bbox_inches='tight')
 
-    ## Images
-    g = Gamma(X, Y, ENL, ENL)
+        ## Images
+        g = Gamma(X, Y, ENL, ENL)
 
-    # Binary image
-    im = g.image_binary(percent)
-    im_filename = "fig/gamma/gamma.im.ENL{0}.{1}.{2}.jpg".format(ENL, short_channel, percent)
-    plt.imsave(im_filename, im, cmap='gray')
+        # Binary image
+        im = g.image_binary(percent)
+        im_filename = "fig/gamma/gamma.im.ENL{0}.{1}.{2}.jpg".format(ENL, short_channel, percent)
+        plt.imsave(im_filename, im, cmap='gray')
 
-    # Two level image, grayscale
-    im = g.image_color2(percent)
-    im_filename = "fig/gamma/gamma.color2.ENL{0}.{1}.{2}.jpg".format(ENL, short_channel, percent)
-    plt.imsave(im_filename, im, cmap="gray", vmin=0, vmax=1)
+        # Two level image, grayscale
+        im = g.image_color2(percent)
+        im_filename = "fig/gamma/gamma.color2.ENL{0}.{1}.{2}.jpg".format(ENL, short_channel, percent)
+        plt.imsave(im_filename, im, cmap="gray", vmin=0, vmax=1)
 
-    # Two level image, color
-    im = g.image_color3(percent)
-    im_filename = "fig/gamma/gamma.color3.ENL{0}.{1}.{2}.jpg".format(ENL, short_channel, percent)
-    plt.imsave(im_filename, im)
+        # Two level image, color
+        im = g.image_color3(percent)
+        im_filename = "fig/gamma/gamma.color3.ENL{0}.{1}.{2}.jpg".format(ENL, short_channel, percent)
+        plt.imsave(im_filename, im)
 
-gamma_test(april, may, "hhhh", 13, 0.10)
-gamma_test(april, may, "hvhv", 13, 0.10)
-gamma_test(april, may, "vvvv", 13, 0.10)
+    gamma_test(april, may, "hhhh", 13, 0.10)
+    gamma_test(april, may, "hvhv", 13, 0.10)
+    gamma_test(april, may, "vvvv", 13, 0.10)
 
-gamma_test(april, may, "hhhh", 13, 0.05)
-gamma_test(april, may, "hvhv", 13, 0.05)
-gamma_test(april, may, "vvvv", 13, 0.05)
+    gamma_test(april, may, "hhhh", 13, 0.05)
+    gamma_test(april, may, "hvhv", 13, 0.05)
+    gamma_test(april, may, "vvvv", 13, 0.05)
 
-gamma_test(april, may, "hhhh", 13, 0.01)
-gamma_test(april, may, "hvhv", 13, 0.01)
-gamma_test(april, may, "vvvv", 13, 0.01)
+    gamma_test(april, may, "hhhh", 13, 0.01)
+    gamma_test(april, may, "hvhv", 13, 0.01)
+    gamma_test(april, may, "vvvv", 13, 0.01)
 
-gamma_test(april, may, "hhhh", 13, 0.001)
-gamma_test(april, may, "hvhv", 13, 0.001)
-gamma_test(april, may, "vvvv", 13, 0.001)
+    gamma_test(april, may, "hhhh", 13, 0.001)
+    gamma_test(april, may, "hvhv", 13, 0.001)
+    gamma_test(april, may, "vvvv", 13, 0.001)
 
-gamma_test(april, may, "hhhh", 13, 0.0001)
-gamma_test(april, may, "hvhv", 13, 0.0001)
-gamma_test(april, may, "vvvv", 13, 0.0001)
+    gamma_test(april, may, "hhhh", 13, 0.0001)
+    gamma_test(april, may, "hvhv", 13, 0.0001)
+    gamma_test(april, may, "vvvv", 13, 0.0001)
 
-gamma_test(april, may, "hhhh", 13, 0.00001)
-gamma_test(april, may, "hvhv", 13, 0.00001)
-gamma_test(april, may, "vvvv", 13, 0.00001)
+    gamma_test(april, may, "hhhh", 13, 0.00001)
+    gamma_test(april, may, "hvhv", 13, 0.00001)
+    gamma_test(april, may, "vvvv", 13, 0.00001)
 
-# At lower ENL than normal
-gamma_test(april, may, "hhhh", 12, 0.01)
-gamma_test(april, may, "hvhv", 12, 0.01)
-gamma_test(april, may, "vvvv", 12, 0.01)
+    # At lower ENL than normal
+    gamma_test(april, may, "hhhh", 12, 0.01)
+    gamma_test(april, may, "hvhv", 12, 0.01)
+    gamma_test(april, may, "vvvv", 12, 0.01)
 
-f, ax = multiENL_gamma(april_no_change.hhhh, may_no_change.hhhh)
-f.savefig("fig/gamma/gamma.multiENL.HH.pdf", bbox_inches='tight')
+    f, ax = multiENL_gamma(april_no_change.hhhh, may_no_change.hhhh)
+    f.savefig("fig/gamma/gamma.multiENL.HH.pdf", bbox_inches='tight')
 
-f, ax = multiENL_gamma(april_no_change.hvhv, may_no_change.hvhv)
-f.savefig("fig/gamma/gamma.multiENL.HV.pdf", bbox_inches='tight')
+    f, ax = multiENL_gamma(april_no_change.hvhv, may_no_change.hvhv)
+    f.savefig("fig/gamma/gamma.multiENL.HV.pdf", bbox_inches='tight')
 
-f, ax = multiENL_gamma(april_no_change.vvvv, may_no_change.vvvv)
-f.savefig("fig/gamma/gamma.multiENL.VV.pdf", bbox_inches='tight')
+    f, ax = multiENL_gamma(april_no_change.vvvv, may_no_change.vvvv)
+    f.savefig("fig/gamma/gamma.multiENL.VV.pdf", bbox_inches='tight')
 
-f, ax = critical_region()
-f.savefig("fig/gamma/gamma.critical-region.pdf", bbox_inches='tight')
+    f, ax = critical_region()
+    f.savefig("fig/gamma/gamma.critical-region.pdf", bbox_inches='tight')
 

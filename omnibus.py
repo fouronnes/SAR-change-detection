@@ -78,60 +78,61 @@ class Omnibus(object):
     def image_linear(self, p1, p2):
         pass
 
-print("Omnibus test...")
+if __name__ == "__main__":
+    print("Omnibus test...")
 
-# Omnibus test of the entire image
-omnibus = Omnibus(sar_list, 13)
+    # Omnibus test of the entire image
+    omnibus = Omnibus(sar_list, 13)
 
-# Omnibus test over the no change region
-omnibus_no_change = Omnibus(sar_list_nochange, 13)
+    # Omnibus test over the no change region
+    omnibus_no_change = Omnibus(sar_list_nochange, 13)
 
-# Histogram over the no change region
-fig, ax = omnibus_no_change.histogram()
-hist_filename = "fig/omnibus/hist.nochange.pdf"
-fig.savefig(hist_filename, bbox_inches='tight')
+    # Histogram over the no change region
+    fig, ax = omnibus_no_change.histogram()
+    hist_filename = "fig/omnibus/hist.nochange.pdf"
+    fig.savefig(hist_filename, bbox_inches='tight')
 
-# Histogram, entire region
-fig, ax = omnibus.histogram()
-hist_filename = "fig/omnibus/hist.total.pdf"
-fig.savefig(hist_filename, bbox_inches='tight')
+    # Histogram, entire region
+    fig, ax = omnibus.histogram()
+    hist_filename = "fig/omnibus/hist.total.pdf"
+    fig.savefig(hist_filename, bbox_inches='tight')
 
-# Binary images
-def omnibus_binary(percent):
-    im = omnibus.image_binary(percent)
-    plt.imsave("fig/omnibus/omnibus.{}.jpg".format(percent), im, cmap="gray")
+    # Binary images
+    def omnibus_binary(percent):
+        im = omnibus.image_binary(percent)
+        plt.imsave("fig/omnibus/omnibus.{}.jpg".format(percent), im, cmap="gray")
 
-omnibus_binary(0.00001)
-omnibus_binary(0.0001)
-omnibus_binary(0.001)
-omnibus_binary(0.01)
-omnibus_binary(0.05)
-omnibus_binary(0.10)
+    omnibus_binary(0.00001)
+    omnibus_binary(0.0001)
+    omnibus_binary(0.001)
+    omnibus_binary(0.01)
+    omnibus_binary(0.05)
+    omnibus_binary(0.10)
 
-def average_probability(omnibus):
-    rho = omnibus.rho
-    lnq = omnibus.lnq
-    f = omnibus.f
-    return 1 - np.mean(scipy.stats.chi2.cdf( -2 * rho * lnq, df=f))
+    def average_probability(omnibus):
+        rho = omnibus.rho
+        lnq = omnibus.lnq
+        f = omnibus.f
+        return 1 - np.mean(scipy.stats.chi2.cdf( -2 * rho * lnq, df=f))
 
-# Pairwise test
-def average_test_for_region(r):
-    print("March = April :", average_probability(Omnibus([march.region(r), april.region(r)], 13)))
-    print("April = May   :", average_probability(Omnibus([april.region(r), may.region(r)], 13)))
-    print("May   = June  :", average_probability(Omnibus([may.region(r), june.region(r)], 13)))
-    print("June  = July  :", average_probability(Omnibus([june.region(r), july.region(r)], 13)))
-    print("July  = August:", average_probability(Omnibus([july.region(r), august.region(r)], 13)))
-    print("Omnibus       :", average_probability(Omnibus([X.region(r) for X in sar_list], 13)))
+    # Pairwise test
+    def average_test_for_region(r):
+        print("March = April :", average_probability(Omnibus([march.region(r), april.region(r)], 13)))
+        print("April = May   :", average_probability(Omnibus([april.region(r), may.region(r)], 13)))
+        print("May   = June  :", average_probability(Omnibus([may.region(r), june.region(r)], 13)))
+        print("June  = July  :", average_probability(Omnibus([june.region(r), july.region(r)], 13)))
+        print("July  = August:", average_probability(Omnibus([july.region(r), august.region(r)], 13)))
+        print("Omnibus       :", average_probability(Omnibus([X.region(r) for X in sar_list], 13)))
 
-# Omnibus test in notable regions
-print("")
-print("Forest:")
-average_test_for_region(region_nochange)
+    # Omnibus test in notable regions
+    print("")
+    print("Forest:")
+    average_test_for_region(region_nochange)
 
-print("")
-print("Rye:")
-average_test_for_region(region_rye)
+    print("")
+    print("Rye:")
+    average_test_for_region(region_rye)
 
-print("")
-print("Grass:")
-average_test_for_region(region_grass)
+    print("")
+    print("Grass:")
+    average_test_for_region(region_grass)

@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import matplotlib.colors
 from sar_data import *
 
-
 def omnibus_lnq(sar_list, n):
     p = 3
     k = len(sar_list)
@@ -47,7 +46,6 @@ class RjTest(object):
             for s in range(1, k-l):
                 pass
 
-
-print("Rj test...")
-
-rj = RjTest(sar_list, 13)
+if __name__ == "__main__":
+    print("Rj test...")
+    rj = RjTest(sar_list, 13)
