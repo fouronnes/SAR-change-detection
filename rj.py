@@ -38,6 +38,7 @@ class RjTest(object):
 
         p = 3
         k = len(sar_list)
+        self.k = k
         n = ENL
 
         # Hypothesis H[l] is
@@ -54,7 +55,40 @@ class RjTest(object):
             self.H[l] = Omnibus(sar_list[l-1:], ENL).pvalue()
 
             for j in range(1, k-l+1):
+                # l-1 because sar_list indexing is 0-based
+                # j+1 because K[l,j] is a test for S(j+1) = S(j),
+                # while R(j) is a test for S(j) = S(j-1)
                 self.K[l, j] = rj_test_statistic(sar_list[l-1:], ENL, j+1)
+
+    def points_of_change(self, percent):
+        """
+        Index of change time point above significance level
+        Returns list of (1-based) indexes such that each index is the first month of each change
+
+        Example 1:
+        M1 = M2 \= M3 = M4 = M5
+        Returns: [2]
+
+        Example 2:
+        M1 \= M2 = M3 = M4 \= M5
+        Returns: [1, 4]
+
+        Example 3:
+        M1 = M2 = M3 = M4 = M5
+        Returns: []
+        """
+
+        result = []
+        j = 1
+        l = 1
+        while j < self.k - l + 1:
+            if self.K[l, j] < percent:
+                result.append((l + j - 1, self.K[l, j]))
+                l += j
+                j = 1
+            else:
+                j += 1
+        return result
 
 if __name__ == "__main__":
 
@@ -79,21 +113,28 @@ if __name__ == "__main__":
         ))
 
     print("Rj test...")
+
+    # print("All:")
     # rj_all = RjTest(sar_list, 13)
+    # print_pvalue_table(rj_all)
+    # print(rj_all.points_of_change(0.05))
 
     print("")
     print("Forest:")
     rj_nochange = RjTest(sar_list_nochange, 13)
     print_pvalue_table(rj_nochange)
+    print(rj_nochange.points_of_change(0.05))
 
     print("")
     print("Rye:")
     rj_rye = RjTest(sar_list_rye, 13)
     print_pvalue_table(rj_rye)
+    print(rj_rye.points_of_change(0.05))
 
     print("")
     print("Grass:")
     rj_grass = RjTest(sar_list_grass, 13)
     print_pvalue_table(rj_grass)
+    print(rj_grass.points_of_change(0.05))
 
 
