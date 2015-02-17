@@ -6,15 +6,19 @@ import matplotlib.colors
 from sar_data import *
 from omnibus import Omnibus
 
-def rj_test_statistic(n, j, sar_list):
-
+def rj_test_statistic(sar_list, n, j):
     p = 3
     f = p**2
-    sum_j = determinant(sar_sum(sar_list))
-    sum_j_minus_1 = determinant(sar_sum(sar_list[:-1]))
+    # Note: sar_list (list of months) indexes are zero-based
+    # but mathematical is 1 based, so indexes are off by -1
+    # additionally ranges end points are off by +1 because exclusive, and recall -1+1 = 0
+    sum_j = determinant(sar_sum(sar_list[:j]))
+    sum_j_minus_1 = determinant(sar_sum(sar_list[:j-1]))
 
-    lnR = n*(p*(j*log(j) - (j-1)*log(j-1)) + (j-1)*log(sum_j_minus_1) + log(determinant(sar_list[-1])) - j*log(sum_j))
+    detXj = determinant(sar_list[j-1]) # -1 because sar_list if 0-based
+    lnR = n*(p*(j*log(j) - (j-1)*log(j-1)) + (j-1)*log(sum_j_minus_1) + log(detXj) - j*log(sum_j))
 
+    # Return the p-value
     return 1 - np.mean(scipy.stats.chi2.cdf( -2*lnR, df=f))
 
 class RjTest(object):
@@ -38,28 +42,40 @@ class RjTest(object):
 
         # Hypothesis H[l] is
         # Sl = ... = Sk
-        self.H = [None]*(k-1)
+        self.H = np.zeros(k)
+        self.H[:] = np.nan
 
         # Hypothesis K[l, s] is
         # S(l+s) = S(l+s-1)
-        self.K = np.zeros((k-1, k-1))
+        self.K = np.zeros((k, k))
         self.K[:,:] = np.nan
 
-        for l in range(0, k-1):
-            self.H[l] = Omnibus(sar_list[l:], ENL)
+        for l in range(1, k):
+            self.H[l] = Omnibus(sar_list[l-1:], ENL).pvalue()
 
-            for s in range(1, k-l):
-                # self.K[l, s] = rj_test_statistic(ENL, s, sar_list[:s])
-                print(rj_test_statistic(ENL, s, sar_list[:s]))
+            for j in range(1, k-l+1):
+                self.K[l, j] = rj_test_statistic(sar_list[l-1:], ENL, j+1)
 
 if __name__ == "__main__":
 
     def print_pvalue_table(rj):
         "Pretty-print the table of p-values"
         print("""
-        {:6.4f} {:6.4f} {:6.4f} {:6.4f} {:6.4f}
+        Apr = Mar | {:6.4f} 
+        May = Apr | {:6.4f} {:6.4f} 
+        Jun = May | {:6.4f} {:6.4f} {:6.4f} 
+        Jul = Jun | {:6.4f} {:6.4f} {:6.4f} {:6.4f} 
+        Aug = Jul | {:6.4f} {:6.4f} {:6.4f} {:6.4f} {:6.4f}
+        ----------|
+        P(Q < q)  | {:6.4f} {:6.4f} {:6.4f} {:6.4f} {:6.4f}
         """.format(
-            rj.H[0].pvalue(), rj.H[1].pvalue(), rj.H[2].pvalue(), rj.H[3].pvalue(), rj.H[4].pvalue()
+            rj.K[1, 1],
+            rj.K[1, 2], rj.K[2, 1],
+            rj.K[1, 3], rj.K[2, 2], rj.K[3, 1],
+            rj.K[1, 4], rj.K[2, 3], rj.K[3, 2], rj.K[4, 1],
+            rj.K[1, 5], rj.K[2, 4], rj.K[3, 3], rj.K[4, 2], rj.K[5, 1],
+
+            rj.H[1], rj.H[2], rj.H[3], rj.H[4], rj.H[5]
         ))
 
     print("Rj test...")
@@ -68,16 +84,16 @@ if __name__ == "__main__":
     print("")
     print("Forest:")
     rj_nochange = RjTest(sar_list_nochange, 13)
-    # print_pvalue_table(rj_nochange)
+    print_pvalue_table(rj_nochange)
 
     print("")
     print("Rye:")
     rj_rye = RjTest(sar_list_rye, 13)
-    # print_pvalue_table(rj_rye)
+    print_pvalue_table(rj_rye)
 
     print("")
     print("Grass:")
     rj_grass = RjTest(sar_list_grass, 13)
-    # print_pvalue_table(rj_grass)
+    print_pvalue_table(rj_grass)
 
 
