@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 from numpy import log
 import scipy.stats
@@ -138,8 +139,48 @@ def number_of_changes_histogram(im):
 
     return f, ax
 
-if __name__ == "__main__":
+def periods_plot(months, regions, points_of_change_list):
+    f = plt.figure(figsize=(8, 2.5))
+    ax = f.add_subplot(111)
 
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    # ax.spines["bottom"].set_visible(False)
+    # ax.spines["left"].set_visible(False)
+    ax.xaxis.set_ticks_position("none")
+    ax.yaxis.set_ticks_position("none")
+
+    # X axis ticks and labels
+    ax.set_xticks(range(1, len(months)+1))
+    ax.set_xticklabels(months)
+    ax.set_xlim([0.5, len(months)+0.5])
+    ax.fmt_xdata = str
+
+    # Y axis ticks and labels
+    ax.set_yticks(range(1, len(regions)+1))
+    ax.set_yticklabels(regions)
+    ax.set_ylim([0.5, len(regions)+0.5])
+
+    ax.set_xticks([1.5, 2.5, 3.5, 4.5, 5.5], minor=True)
+    ax.set_xticklabels(["", "", "", "", ""], minor=True)
+    ax.grid(True, axis="x", which="minor")
+    ax.set_axisbelow(True)
+
+    height = 0.3
+    margin = 0.3
+    for (y, points_of_change) in enumerate(points_of_change_list):
+        extended_pt = [0] + [p for (p, t) in points_of_change] + [len(months)]
+        print(extended_pt)
+        for i in range(len(extended_pt)-1):
+            print(extended_pt[i])
+            x_start = extended_pt[i] + 0.5 + margin/2
+            x_end = extended_pt[i+1] + 0.5 - margin/2
+            rect = matplotlib.patches.Rectangle((x_start,y+1-height/2), x_end-x_start, height, color='#3F5D7D')
+            ax.add_patch(rect)
+
+    return f, ax
+
+if __name__ == "__main__":
     def print_pvalue_table(rj):
         "Pretty-print the table of p-values"
         print("""
@@ -211,5 +252,12 @@ if __name__ == "__main__":
     number_of_changes_test(rj_grass, "grass", 0.001)
     number_of_changes_test(rj_grass, "grass", 0.0001)
     number_of_changes_test(rj_grass, "grass", 0.00001)
+
+    # Period plot
+    month_labels = ["March", "April", "May", "June", "July", "August"]
+    regions_labels = ["Forest", "Rye", "Grass"]
+    points_of_change_list = [rj.points_of_change(0.05) for rj in
+        [rj_nochange, rj_rye, rj_grass]
+    ]
 
 
