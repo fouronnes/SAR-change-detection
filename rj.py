@@ -70,15 +70,17 @@ class RjTest(object):
     def points_of_change(self, percent):
         """
         Index of change time point above significance level
-        Returns list of (1-based) indexes such that each index is the first month of each change
+        Returns a list of tuples (t, p) for each point of change where:
+        t is the (1-based) index of the first month of each change
+        p is the associated p-value
 
         Example 1:
         M1 = M2 \= M3 = M4 = M5
-        Returns: [2]
+        Returns: [(2, 0.001)]
 
         Example 2:
         M1 \= M2 = M3 = M4 \= M5
-        Returns: [1, 4]
+        Returns: [(1, 0.0003), (4, 0.004)]
 
         Example 3:
         M1 = M2 = M3 = M4 = M5
@@ -167,12 +169,24 @@ def periods_plot(months, regions, points_of_change_list):
     ax.set_axisbelow(True)
 
     height = 0.3
-    margin = 0.3
+    margin = 0.5
+    # For each region
     for (y, points_of_change) in enumerate(points_of_change_list):
-        extended_pt = [0] + [p for (p, t) in points_of_change] + [len(months)]
-        print(extended_pt)
+        # Draw the change pvalues
+        for (t, p) in points_of_change:
+            text_x = t + 0.5
+            text_y = y + 1
+            ax.text(text_x, text_y, "{:4.1f}%".format(p*100),
+                horizontalalignment='center',
+                verticalalignment='center',
+                fontsize=10,
+                weight="bold",
+                bbox=dict(facecolor="white", edgecolor="none")
+            )
+
+        # Draw the no change rectangles
+        extended_pt = [0] + [t for (t, p) in points_of_change] + [len(months)]
         for i in range(len(extended_pt)-1):
-            print(extended_pt[i])
             x_start = extended_pt[i] + 0.5 + margin/2
             x_end = extended_pt[i+1] + 0.5 - margin/2
             rect = matplotlib.patches.Rectangle((x_start,y+1-height/2), x_end-x_start, height, color='#3F5D7D')
@@ -253,11 +267,20 @@ if __name__ == "__main__":
     number_of_changes_test(rj_grass, "grass", 0.0001)
     number_of_changes_test(rj_grass, "grass", 0.00001)
 
-    # Period plot
     month_labels = ["March", "April", "May", "June", "July", "August"]
     regions_labels = ["Forest", "Rye", "Grass"]
-    points_of_change_list = [rj.points_of_change(0.05) for rj in
-        [rj_nochange, rj_rye, rj_grass]
-    ]
+    def make_period_plot(percent):
+        f, ax = periods_plot(month_labels, regions_labels, 
+            [rj.points_of_change(percent) for rj in [rj_nochange, rj_rye, rj_grass]]
+        )
+        f.savefig("fig/rj/periods.{}.pdf".format(percent), bbox_inches='tight')
 
+    make_period_plot(0.10)
+    make_period_plot(0.05)
+    make_period_plot(0.01)
+    make_period_plot(0.001)
+    make_period_plot(0.0001)
+    make_period_plot(0.00001)
+
+    plt.close('all')
 
