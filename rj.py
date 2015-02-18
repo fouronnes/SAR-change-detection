@@ -18,8 +18,7 @@ def rj_test_statistic(sar_list, n, j):
     detXj = determinant(sar_list[j-1]) # -1 because sar_list if 0-based
     lnR = n*(p*(j*log(j) - (j-1)*log(j-1)) + (j-1)*log(sum_j_minus_1) + log(detXj) - j*log(sum_j))
 
-    # Return the p-value
-    return 1 - np.mean(scipy.stats.chi2.cdf( -2*lnR, df=f))
+    return lnR
 
 class RjTest(object):
     """
@@ -39,6 +38,7 @@ class RjTest(object):
         p = 3
         k = len(sar_list)
         self.k = k
+        self.f = p**2
         n = ENL
 
         # Hypothesis H[l] is
@@ -48,8 +48,10 @@ class RjTest(object):
 
         # Hypothesis K[l, s] is
         # S(l+s) = S(l+s-1)
-        self.K = np.zeros((k, k))
-        self.K[:,:] = np.nan
+        self.K = np.zeros((k, k, sar_list[0].hhhh.shape[0], sar_list[0].hhhh.shape[1]))
+        nan_array = np.empty((sar_list[0].hhhh.shape[0], sar_list[0].hhhh.shape[1]))
+        nan_array[:,:] = np.nan
+        self.K[:,:] = nan_array
 
         for l in range(1, k):
             self.H[l] = Omnibus(sar_list[l-1:], ENL).pvalue()
@@ -59,6 +61,10 @@ class RjTest(object):
                 # j+1 because K[l,j] is a test for S(j+1) = S(j),
                 # while R(j) is a test for S(j) = S(j-1)
                 self.K[l, j] = rj_test_statistic(sar_list[l-1:], ENL, j+1)
+
+    def pvalue(self, l, j):
+        "Average probability over the region"
+        return 1 - np.mean(scipy.stats.chi2.cdf( -2 * self.K[l, j], df=self.f))
 
     def points_of_change(self, percent):
         """
@@ -82,8 +88,8 @@ class RjTest(object):
         j = 1
         l = 1
         while j < self.k - l + 1:
-            if self.K[l, j] < percent:
-                result.append((l + j - 1, self.K[l, j]))
+            if self.pvalue(l, j) < percent:
+                result.append((l + j - 1, self.pvalue(l, j)))
                 l += j
                 j = 1
             else:
@@ -103,11 +109,11 @@ if __name__ == "__main__":
         ----------|
         P(Q < q)  | {:6.4f} {:6.4f} {:6.4f} {:6.4f} {:6.4f}
         """.format(
-            rj.K[1, 1],
-            rj.K[1, 2], rj.K[2, 1],
-            rj.K[1, 3], rj.K[2, 2], rj.K[3, 1],
-            rj.K[1, 4], rj.K[2, 3], rj.K[3, 2], rj.K[4, 1],
-            rj.K[1, 5], rj.K[2, 4], rj.K[3, 3], rj.K[4, 2], rj.K[5, 1],
+            rj.pvalue(1, 1),
+            rj.pvalue(1, 2), rj.pvalue(2, 1),
+            rj.pvalue(1, 3), rj.pvalue(2, 2), rj.pvalue(3, 1),
+            rj.pvalue(1, 4), rj.pvalue(2, 3), rj.pvalue(3, 2), rj.pvalue(4, 1),
+            rj.pvalue(1, 5), rj.pvalue(2, 4), rj.pvalue(3, 3), rj.pvalue(4, 2), rj.pvalue(5, 1),
 
             rj.H[1], rj.H[2], rj.H[3], rj.H[4], rj.H[5]
         ))
