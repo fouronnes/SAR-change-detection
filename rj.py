@@ -62,7 +62,7 @@ class RjTest(object):
                 # while R(j) is a test for S(j) = S(j-1)
                 self.K[l, j] = rj_test_statistic(sar_list[l-1:], ENL, j+1)
 
-    def pvalue(self, l, j):
+    def average_pvalue(self, l, j):
         "Average probability over the region"
         return 1 - np.mean(scipy.stats.chi2.cdf( -2 * self.K[l, j], df=self.f))
 
@@ -88,12 +88,38 @@ class RjTest(object):
         j = 1
         l = 1
         while j < self.k - l + 1:
-            if self.pvalue(l, j) < percent:
-                result.append((l + j - 1, self.pvalue(l, j)))
+            if self.average_pvalue(l, j) < percent:
+                result.append((l + j - 1, self.average_pvalue(l, j)))
                 l += j
                 j = 1
             else:
                 j += 1
+        return result
+
+    def number_of_changes(self, percent):
+        """
+        The 'point of change' algorithm for each pixel,
+        vectorized using numpy array operations
+        """
+
+        image_shape = self.K[1, 1].shape
+        j = np.ones(image_shape, dtype=int)
+        l = np.ones(image_shape, dtype=int)
+        result = np.zeros(image_shape, dtype=np.float32)
+        for repeat in range(1, self.k):
+            # Numpy array indexing black magic to obtain an image mask
+            # Indicating if there is change at this (l, j) time point
+            a, b = np.meshgrid(np.arange(image_shape[0]), np.arange(image_shape[1]), indexing="ij")
+            change_mask = (1 - scipy.stats.chi2.cdf(-2*self.K[l, j, a, b], df=self.f)) < percent
+
+            # Where there is change
+            l[change_mask] += j[change_mask]
+            j[change_mask] = 1
+            result[change_mask] += 1
+
+            # Where there is no change
+            j[np.logical_not(change_mask)] += 1
+
         return result
 
 if __name__ == "__main__":
@@ -109,38 +135,53 @@ if __name__ == "__main__":
         ----------|
         P(Q < q)  | {:6.4f} {:6.4f} {:6.4f} {:6.4f} {:6.4f}
         """.format(
-            rj.pvalue(1, 1),
-            rj.pvalue(1, 2), rj.pvalue(2, 1),
-            rj.pvalue(1, 3), rj.pvalue(2, 2), rj.pvalue(3, 1),
-            rj.pvalue(1, 4), rj.pvalue(2, 3), rj.pvalue(3, 2), rj.pvalue(4, 1),
-            rj.pvalue(1, 5), rj.pvalue(2, 4), rj.pvalue(3, 3), rj.pvalue(4, 2), rj.pvalue(5, 1),
+            rj.average_pvalue(1, 1),
+            rj.average_pvalue(1, 2), rj.average_pvalue(2, 1),
+            rj.average_pvalue(1, 3), rj.average_pvalue(2, 2), rj.average_pvalue(3, 1),
+            rj.average_pvalue(1, 4), rj.average_pvalue(2, 3), rj.average_pvalue(3, 2), rj.average_pvalue(4, 1),
+            rj.average_pvalue(1, 5), rj.average_pvalue(2, 4), rj.average_pvalue(3, 3), rj.average_pvalue(4, 2), rj.average_pvalue(5, 1),
 
             rj.H[1], rj.H[2], rj.H[3], rj.H[4], rj.H[5]
         ))
 
     print("Rj test...")
 
-    # print("All:")
-    # rj_all = RjTest(sar_list, 13)
-    # print_pvalue_table(rj_all)
+    print("All:")
+    rj_all = RjTest(sar_list, 13)
+    print_pvalue_table(rj_all)
     # print(rj_all.points_of_change(0.05))
+
+    im = rj_all.number_of_changes(0.05)
+    plt.imsave("fig/rj/number_of_changes0.05.jpg", im, vmin=0, vmax=5, cmap="gray")
+
+    im = rj_all.number_of_changes(0.01)
+    plt.imsave("fig/rj/number_of_changes0.01.jpg", im, vmin=0, vmax=5, cmap="gray")
+
+    im = rj_all.number_of_changes(0.001)
+    plt.imsave("fig/rj/number_of_changes0.001.jpg", im, vmin=0, vmax=5, cmap="gray")
+
+    im = rj_all.number_of_changes(0.0001)
+    plt.imsave("fig/rj/number_of_changes0.0001.jpg", im, vmin=0, vmax=5, cmap="gray")
+
+    im = rj_all.number_of_changes(0.00001)
+    plt.imsave("fig/rj/number_of_changes0.00001.jpg", im, vmin=0, vmax=5, cmap="gray")
 
     print("")
     print("Forest:")
     rj_nochange = RjTest(sar_list_nochange, 13)
     print_pvalue_table(rj_nochange)
-    print(rj_nochange.points_of_change(0.05))
+    # print(rj_nochange.points_of_change(0.05))
 
     print("")
     print("Rye:")
     rj_rye = RjTest(sar_list_rye, 13)
     print_pvalue_table(rj_rye)
-    print(rj_rye.points_of_change(0.05))
+    # print(rj_rye.points_of_change(0.05))
 
     print("")
     print("Grass:")
     rj_grass = RjTest(sar_list_grass, 13)
     print_pvalue_table(rj_grass)
-    print(rj_grass.points_of_change(0.05))
+    # print(rj_grass.points_of_change(0.05))
 
 
