@@ -122,6 +122,22 @@ class RjTest(object):
 
         return result
 
+def number_of_changes_histogram(im):
+    f = plt.figure(figsize=(4, 2))
+    ax = f.add_subplot(111)
+    ax.hist(im.flatten(), bins=np.arange(6), normed=True, rwidth=0.9, align="left", color="#3F5D7D")
+    ax.grid(True, axis="y")
+
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.get_xaxis().tick_bottom()
+    ax.get_yaxis().tick_left()
+
+    ax.set_xlim([-0.5, 5.5])
+    ax.set_yticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+
+    return f, ax
+
 if __name__ == "__main__":
 
     def print_pvalue_table(rj):
@@ -144,44 +160,56 @@ if __name__ == "__main__":
             rj.H[1], rj.H[2], rj.H[3], rj.H[4], rj.H[5]
         ))
 
+    def number_of_changes_test(rj, name, percent):
+        """Produce an histogram and image of the total number of changes detected"""
+        im = rj.number_of_changes(percent)
+        plt.imsave("fig/rj/{}/number_of_changes.{}.jpg".format(name, percent), im, vmin=0, vmax=5, cmap="gray")
+        f, ax = number_of_changes_histogram(im)
+        f.savefig("fig/rj/{}/number_of_changes.hist.{}.pdf".format(name, percent), bbox_inches='tight')
+
     print("Rj test...")
 
     print("All:")
     rj_all = RjTest(sar_list, 13)
     print_pvalue_table(rj_all)
-    # print(rj_all.points_of_change(0.05))
-
-    im = rj_all.number_of_changes(0.05)
-    plt.imsave("fig/rj/number_of_changes0.05.jpg", im, vmin=0, vmax=5, cmap="gray")
-
-    im = rj_all.number_of_changes(0.01)
-    plt.imsave("fig/rj/number_of_changes0.01.jpg", im, vmin=0, vmax=5, cmap="gray")
-
-    im = rj_all.number_of_changes(0.001)
-    plt.imsave("fig/rj/number_of_changes0.001.jpg", im, vmin=0, vmax=5, cmap="gray")
-
-    im = rj_all.number_of_changes(0.0001)
-    plt.imsave("fig/rj/number_of_changes0.0001.jpg", im, vmin=0, vmax=5, cmap="gray")
-
-    im = rj_all.number_of_changes(0.00001)
-    plt.imsave("fig/rj/number_of_changes0.00001.jpg", im, vmin=0, vmax=5, cmap="gray")
+    number_of_changes_test(rj_all, "all", 0.10)
+    number_of_changes_test(rj_all, "all", 0.05)
+    number_of_changes_test(rj_all, "all", 0.01)
+    number_of_changes_test(rj_all, "all", 0.001)
+    number_of_changes_test(rj_all, "all", 0.0001)
+    number_of_changes_test(rj_all, "all", 0.00001)
 
     print("")
     print("Forest:")
     rj_nochange = RjTest(sar_list_nochange, 13)
     print_pvalue_table(rj_nochange)
-    # print(rj_nochange.points_of_change(0.05))
+    number_of_changes_test(rj_nochange, "forest", 0.10)
+    number_of_changes_test(rj_nochange, "forest", 0.05)
+    number_of_changes_test(rj_nochange, "forest", 0.01)
+    number_of_changes_test(rj_nochange, "forest", 0.001)
+    number_of_changes_test(rj_nochange, "forest", 0.0001)
+    number_of_changes_test(rj_nochange, "forest", 0.00001)
 
     print("")
     print("Rye:")
     rj_rye = RjTest(sar_list_rye, 13)
     print_pvalue_table(rj_rye)
-    # print(rj_rye.points_of_change(0.05))
+    number_of_changes_test(rj_rye, "rye", 0.10)
+    number_of_changes_test(rj_rye, "rye", 0.05)
+    number_of_changes_test(rj_rye, "rye", 0.01)
+    number_of_changes_test(rj_rye, "rye", 0.001)
+    number_of_changes_test(rj_rye, "rye", 0.0001)
+    number_of_changes_test(rj_rye, "rye", 0.00001)
 
     print("")
     print("Grass:")
     rj_grass = RjTest(sar_list_grass, 13)
     print_pvalue_table(rj_grass)
-    # print(rj_grass.points_of_change(0.05))
+    number_of_changes_test(rj_grass, "grass", 0.10)
+    number_of_changes_test(rj_grass, "grass", 0.05)
+    number_of_changes_test(rj_grass, "grass", 0.01)
+    number_of_changes_test(rj_grass, "grass", 0.001)
+    number_of_changes_test(rj_grass, "grass", 0.0001)
+    number_of_changes_test(rj_grass, "grass", 0.00001)
 
 
