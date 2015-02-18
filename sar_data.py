@@ -102,6 +102,10 @@ july_no_change   = july.region(region_nochange)
 august_no_change = august.region(region_nochange)
 
 # Make color composites
+plt.imsave("fig/march.jpg", color_composite(march))
 plt.imsave("fig/april.jpg", color_composite(april))
 plt.imsave("fig/may.jpg", color_composite(may))
+plt.imsave("fig/june.jpg", color_composite(june))
+plt.imsave("fig/july.jpg", color_composite(july))
+plt.imsave("fig/august.jpg", color_composite(august))
 
