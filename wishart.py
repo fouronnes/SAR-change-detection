@@ -3,6 +3,7 @@ import scipy.stats
 import matplotlib.pyplot as plt
 import matplotlib.colors
 from sar_data import *
+from plotting import *
 
 def block_diagonal(X, Y, n, m):
     p = 3
@@ -40,9 +41,9 @@ def azimuthal_symmetry(X, Y, n, m):
 
 def full_covariance(X, Y, n, m):
     p = 3
-    detX = determinant(X)
-    detY = determinant(Y)
-    detXY = determinant(sar_sum([X, Y]))
+    detX = X.determinant()
+    detY = Y.determinant()
+    detXY = sar_sum([X, Y]).determinant()
 
     lnq = (p*(n+m)*np.log(n+m) - p*n*np.log(n) - p*m*np.log(m)
             + n*np.log(detX) + m*np.log(detY) - (n+m)*np.log(detXY))
@@ -102,7 +103,7 @@ class Wishart(object):
 
         im = np.zeros_like(self.lnq)
         im[-2*self.lnq > threshold] = 1
-        return im
+        return im.reshape(self.X.shape)
 
     def image_linear(self, p1, p2):
         # Select thresholds from chi2 percentile (ignore w2 term)
@@ -111,7 +112,7 @@ class Wishart(object):
         t1 = chi2.ppf(1.0 - p1)
         t2 = chi2.ppf(1.0 - p2)
 
-        return matplotlib.colors.normalize(t1, t2, clip=True)(-2*self.lnq)
+        return matplotlib.colors.normalize(t1, t2, clip=True)(-2*self.lnq.reshape(self.X.shape))
 
 def critical_region_wishart():
     "Critical region figure"
@@ -166,7 +167,7 @@ def wishart_test(mode, ENL, percent):
     w = Wishart(april, may, ENL, ENL, mode)
 
     # Test statistic over the no change region
-    wno = Wishart(april_no_change, may_no_change, ENL, ENL, mode)
+    wno = Wishart(april.region(region_nochange), may.region(region_nochange), ENL, ENL, mode)
 
     # Histogram, no change region
     f, ax = wno.histogram(percent)
