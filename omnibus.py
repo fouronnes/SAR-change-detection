@@ -25,11 +25,11 @@ class Omnibus(object):
         self.f = (k-1)*p**2
         self.rho = 1- (2*p**2 - 1)/(6*p*(k-1)) * (k/n - 1/(n*k))
 
-        sum_term = sum([np.log(determinant(Xi)) for Xi in sar_list])
+        sum_term = sum([np.log(Xi.determinant()) for Xi in sar_list])
         X = sar_sum(sar_list)
 
         # Omnibus test
-        self.lnq = n*(p*k*np.log(k) + sum_term - k*np.log(determinant(X)))
+        self.lnq = n*(p*k*np.log(k) + sum_term - k*np.log(X.determinant()))
 
     def pvalue(self):
         "Average probability over the tested region"
@@ -74,7 +74,7 @@ class Omnibus(object):
 
         im = np.zeros_like(self.lnq)
         im[-2*self.lnq > threshold] = 1
-        return im
+        return im.reshape(self.sar_list[0].shape)
 
     def image_autothresholds(self):
         pass
