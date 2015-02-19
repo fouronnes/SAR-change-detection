@@ -57,6 +57,8 @@ class SARData(object):
         s.hhvv = self.hhvv.reshape(self.shape)[np.ix_(region.range_i, region.range_j)].flatten()
         s.hvvv = self.hvvv.reshape(self.shape)[np.ix_(region.range_i, region.range_j)].flatten()
         s.vvvv = self.vvvv.reshape(self.shape)[np.ix_(region.range_i, region.range_j)].flatten()
+        s.shape = (len(region.range_i), len(region.range_j))
+        s.size = len(region.range_i) * len(region.range_j)
         return s
 
     def masked_region(self, mask):

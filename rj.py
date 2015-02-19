@@ -13,10 +13,10 @@ def rj_test_statistic(sar_list, n, j):
     # Note: sar_list (list of months) indexes are zero-based
     # but mathematical is 1 based, so indexes are off by -1
     # additionally ranges end points are off by +1 because exclusive, and recall -1+1 = 0
-    sum_j = determinant(sar_sum(sar_list[:j]))
-    sum_j_minus_1 = determinant(sar_sum(sar_list[:j-1]))
+    sum_j = sar_sum(sar_list[:j]).determinant()
+    sum_j_minus_1 = sar_sum(sar_list[:j-1]).determinant()
 
-    detXj = determinant(sar_list[j-1]) # -1 because sar_list if 0-based
+    detXj = sar_list[j-1].determinant() # -1 because sar_list if 0-based
     lnR = n*(p*(j*log(j) - (j-1)*log(j-1)) + (j-1)*log(sum_j_minus_1) + log(detXj) - j*log(sum_j))
 
     return lnR
@@ -35,6 +35,8 @@ class RjTest(object):
 
         self.sar_list = sar_list
         self.ENL = ENL
+        self.shape = sar_list[0].shape
+        self.size = sar_list[0].size
 
         p = 3
         k = len(sar_list)
@@ -49,9 +51,9 @@ class RjTest(object):
 
         # Hypothesis K[l, s] is
         # S(l+s) = S(l+s-1)
-        self.K = np.zeros((k, k, sar_list[0].hhhh.shape[0], sar_list[0].hhhh.shape[1]))
-        nan_array = np.empty((sar_list[0].hhhh.shape[0], sar_list[0].hhhh.shape[1]))
-        nan_array[:,:] = np.nan
+        self.K = np.zeros((k, k, sar_list[0].size))
+        nan_array = np.empty(sar_list[0].size)
+        nan_array[:] = np.nan
         self.K[:,:] = nan_array
 
         for l in range(1, k):
@@ -103,17 +105,17 @@ class RjTest(object):
         """
         The 'point of change' algorithm for each pixel,
         vectorized using numpy array operations
+        Returns a 1D array
         """
 
-        image_shape = self.K[1, 1].shape
-        j = np.ones(image_shape, dtype=int)
-        l = np.ones(image_shape, dtype=int)
-        result = np.zeros(image_shape, dtype=np.float32)
+        image_shape = self.shape
+        j = np.ones(self.size, dtype=int)
+        l = np.ones(self.size, dtype=int)
+        result = np.zeros(self.size, dtype=np.float32)
         for repeat in range(1, self.k):
             # Numpy array indexing black magic to obtain an image mask
-            # Indicating if there is change at this (l, j) time point
-            a, b = np.meshgrid(np.arange(image_shape[0]), np.arange(image_shape[1]), indexing="ij")
-            change_mask = (1 - scipy.stats.chi2.cdf(-2*self.K[l, j, a, b], df=self.f)) < percent
+            # indicating if there is change at this (l, j) time point
+            change_mask = (1 - scipy.stats.chi2.cdf(-2*self.K[l, j, np.arange(self.size)], df=self.f)) < percent
 
             # Where there is change
             l[change_mask] += j[change_mask]
@@ -123,7 +125,7 @@ class RjTest(object):
             # Where there is no change
             j[np.logical_not(change_mask)] += 1
 
-        return result
+        return result.reshape(self.shape)
 
 def number_of_changes_histogram(im):
     f = plt.figure(figsize=(4, 2))
@@ -217,8 +219,11 @@ if __name__ == "__main__":
 
     def number_of_changes_test(rj, name, percent):
         """Produce an histogram and image of the total number of changes detected"""
-        im = rj.number_of_changes(percent)
-        plt.imsave("fig/rj/{}/number_of_changes.{}.jpg".format(name, percent), im, vmin=0, vmax=5, cmap="gray")
+        # Image, if the region is square
+        if rj.shape is not None:
+            im = rj.number_of_changes(percent)
+            plt.imsave("fig/rj/{}/number_of_changes.{}.jpg".format(name, percent), im, vmin=0, vmax=5, cmap="gray")
+        # Histogram
         f, ax = number_of_changes_histogram(im)
         f.savefig("fig/rj/{}/number_of_changes.hist.{}.pdf".format(name, percent), bbox_inches='tight')
 
