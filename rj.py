@@ -198,7 +198,7 @@ def periods_plot(months, regions, points_of_change_list):
 
 if __name__ == "__main__":
     def print_pvalue_table(rj):
-        "Pretty-print the table of p-values"
+        """Pretty-print the table of p-values"""
         print("""
         Apr = Mar | {:6.4f} 
         May = Apr | {:6.4f} {:6.4f} 
@@ -239,7 +239,6 @@ if __name__ == "__main__":
     number_of_changes_test(rj_all, "all", 0.0001)
     number_of_changes_test(rj_all, "all", 0.00001)
 
-    print("")
     print("Forest:")
     rj_nochange = RjTest(sar_list_nochange, 13)
     print_pvalue_table(rj_nochange)
@@ -250,7 +249,6 @@ if __name__ == "__main__":
     number_of_changes_test(rj_nochange, "forest", 0.0001)
     number_of_changes_test(rj_nochange, "forest", 0.00001)
 
-    print("")
     print("Rye:")
     rj_rye = RjTest(sar_list_rye, 13)
     print_pvalue_table(rj_rye)
@@ -261,7 +259,6 @@ if __name__ == "__main__":
     number_of_changes_test(rj_rye, "rye", 0.0001)
     number_of_changes_test(rj_rye, "rye", 0.00001)
 
-    print("")
     print("Grass:")
     rj_grass = RjTest(sar_list_grass, 13)
     print_pvalue_table(rj_grass)
@@ -272,11 +269,14 @@ if __name__ == "__main__":
     number_of_changes_test(rj_grass, "grass", 0.0001)
     number_of_changes_test(rj_grass, "grass", 0.00001)
 
+    # Produce the "period plots", at different significance levels
     month_labels = ["March", "April", "May", "June", "July", "August"]
     regions_labels = ["Forest", "Rye", "Grass"]
+    rj_regions = [rj_nochange, rj_rye, rj_grass]
+
     def make_period_plot(percent):
         f, ax = periods_plot(month_labels, regions_labels, 
-            [rj.points_of_change(percent) for rj in [rj_nochange, rj_rye, rj_grass]]
+            [rj.points_of_change(percent) for rj in rj_regions]
         )
         f.savefig("fig/rj/periods.{}.pdf".format(percent), bbox_inches='tight')
 
