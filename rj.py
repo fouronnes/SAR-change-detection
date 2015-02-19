@@ -51,8 +51,8 @@ class RjTest(object):
 
         # Hypothesis K[l, s] is
         # S(l+s) = S(l+s-1)
-        self.K = np.zeros((k, k, sar_list[0].size))
-        nan_array = np.empty(sar_list[0].size)
+        self.K = np.zeros((k, k, self.size))
+        nan_array = np.empty(self.size)
         nan_array[:] = np.nan
         self.K[:,:] = nan_array
 
@@ -125,7 +125,7 @@ class RjTest(object):
             # Where there is no change
             j[np.logical_not(change_mask)] += 1
 
-        return result.reshape(self.shape)
+        return result
 
 def number_of_changes_histogram(im):
     f = plt.figure(figsize=(4, 2))
@@ -219,10 +219,10 @@ if __name__ == "__main__":
 
     def number_of_changes_test(rj, name, percent):
         """Produce an histogram and image of the total number of changes detected"""
-        # Image, if the region is square
+        im = rj.number_of_changes(percent)
+        # Save it as an image, if the region is square
         if rj.shape is not None:
-            im = rj.number_of_changes(percent)
-            plt.imsave("fig/rj/{}/number_of_changes.{}.jpg".format(name, percent), im, vmin=0, vmax=5, cmap="gray")
+            plt.imsave("fig/rj/{}/number_of_changes.{}.jpg".format(name, percent), im.reshape(rj.shape), vmin=0, vmax=5, cmap="gray")
         # Histogram
         f, ax = number_of_changes_histogram(im)
         f.savefig("fig/rj/{}/number_of_changes.hist.{}.pdf".format(name, percent), bbox_inches='tight')

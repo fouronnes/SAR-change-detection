@@ -63,7 +63,14 @@ class SARData(object):
 
     def masked_region(self, mask):
         "Extract a subset of the SARData image defined by a mask"
-        pass
+        assert(mask.shape == self.hhhh.shape)
+
+        s = SARData()
+        for c in ["hhhh", "hhhv", "hvhv", "hhvv", "hvvv", "vvvv"]:
+            s.__dict__[c] = self.__dict__[c][mask]
+        s.shape = None
+        s.size = mask.sum()
+        return s
 
     def determinant(self):
         "Determinants of the covariance matrices in a SARData object"
@@ -98,6 +105,10 @@ region_nochange = Region(range(307, 455), range(52, 120))
 region_rye = Region(range(116, 146), range(328, 411))
 region_grass = Region(range(268, 330), range(128, 234))
 
+mask_forest = plt.imread("../SAR_Data/forestidx.tif")[:, :, 0].astype(bool, copy=True).flatten()
+mask_rye = plt.imread("../SAR_Data/ryeidx.tif")[:, :, 0].astype(bool, copy=True).flatten()
+mask_grass = plt.imread("../SAR_Data/grassidx.tif")[:, :, 0].astype(bool, copy=True).flatten()
+
 # Load data
 march  = SARData().load("../SAR_Data", "fl062_l", (1024, 1024), header=True)
 april  = SARData().load("../SAR_Data", "fl063_l", (1024, 1024), header=False)
@@ -110,9 +121,9 @@ august = SARData().load("../SAR_Data", "fl074_l", (1024, 1024), header=True)
 sar_list = [march, april, may, june, july, august]
 
 # Time series of image regions
-sar_list_nochange = [X.region(region_nochange) for X in sar_list]
-sar_list_rye      = [X.region(region_rye)      for X in sar_list]
-sar_list_grass    = [X.region(region_grass)    for X in sar_list]
+sar_list_nochange = [X.masked_region(mask_forest) for X in sar_list]
+sar_list_rye      = [X.masked_region(mask_rye)    for X in sar_list]
+sar_list_grass    = [X.masked_region(mask_grass)  for X in sar_list]
 
 # Make color composites
 plt.imsave("fig/march.jpg", march.color_composite())
