@@ -112,15 +112,6 @@ sar_list_nochange = [X.region(region_nochange) for X in sar_list]
 sar_list_rye      = [X.region(region_rye)      for X in sar_list]
 sar_list_grass    = [X.region(region_grass)    for X in sar_list]
 
-# No change region
-# This is redundant with sar_list_nochange, but gamma.py uses this for now
-march_no_change  = march.region(region_nochange)
-april_no_change  = april.region(region_nochange)
-may_no_change    = may.region(region_nochange)
-june_no_change   = june.region(region_nochange)
-july_no_change   = july.region(region_nochange)
-august_no_change = august.region(region_nochange)
-
 # Make color composites
 plt.imsave("fig/march.jpg", march.color_composite())
 plt.imsave("fig/april.jpg", april.color_composite())

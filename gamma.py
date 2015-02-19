@@ -11,11 +11,12 @@ class Gamma(object):
     n, m are Equivalent Number of Looks (ENL)
     """
 
-    def __init__(self, X, Y, n, m):
+    def __init__(self, X, Y, n, m, shape):
         self.X = X
         self.Y = Y
         self.n = n
         self.m = m
+        self.shape = shape
         self.Q = Y/X # Test statistic
 
     def histogram(self, percentile):
@@ -51,7 +52,7 @@ class Gamma(object):
         im[self.Q < t_inf] = 1
         im[self.Q > t_sup] = 1
 
-        return im
+        return im.reshape(self.shape)
 
     def image_color2(self, percentile):
         """
@@ -62,11 +63,11 @@ class Gamma(object):
         t_inf, t_sup = F.ppf(percentile/2), F.ppf(1 - percentile/2)
 
         im = np.empty_like(self.Q)
-        im[:,:] = 0.5
+        im[:] = 0.5
         im[self.Q < t_inf] = 0
         im[self.Q > t_sup] = 1
 
-        return im
+        return im.reshape(self.shape)
 
     def image_color3(self, percentile):
         """
@@ -75,21 +76,18 @@ class Gamma(object):
         F = scipy.stats.f(2*self.m, 2*self.n)
         t_inf, t_sup = F.ppf(percentile/2), F.ppf(1 - percentile/2)
 
-        im = np.empty((self.Q.shape[0], self.Q.shape[1], 3))
+        im = np.empty((self.shape[0], self.shape[1], 3))
         im[:,:] = np.array([0, 0, 0])
-        im[self.Q < t_inf] = np.array([170, 63, 57])
-        im[self.Q > t_sup] = np.array([35, 100, 103])
+        im[self.Q.reshape(self.shape) < t_inf] = np.array([170, 63, 57])
+        im[self.Q.reshape(self.shape) > t_sup] = np.array([35, 100, 103])
 
         return im
 
     def image_linear(self, percentile):
         pass
 
-def aregion(X):
-    return X[np.ix_(region_nochange.range_i, region_nochange.range_j)]
-
 def multiENL_gamma(april, may):
-    gamma = Gamma(april, may, 13, 13)
+    gamma = Gamma(april, may, 13, 13, (1024, 1024))
 
     f = plt.figure(figsize=(8, 4))
     ax = f.add_subplot(111)
@@ -189,23 +187,20 @@ if __name__ == "__main__":
         # Data
         X = april.__dict__[channel]
         Y = may.__dict__[channel]
-        Xno = aregion(X)
-        Yno = aregion(Y)
+        Xno = april.region(region_nochange).__dict__[channel]
+        Yno = may.region(region_nochange).__dict__[channel]
 
         # Name variables
         short_channel = channel[:2].upper()
-        hist_title = ("Likelihood ratio distribution of no change region {} ENL={}"
-            .format(short_channel, ENL))
         hist_filename = "fig/gamma/gamma.hist.ENL{0}.{1}.{2}.pdf".format(ENL, short_channel, percent)
 
         # No change region histogram
-        gno = Gamma(Xno, Yno, ENL, ENL)
+        gno = Gamma(Xno, Yno, ENL, ENL, april.shape)
         f, ax = gno.histogram(percent)
-        # ax.set_title(hist_title)
         f.savefig(hist_filename, bbox_inches='tight')
 
         ## Images
-        g = Gamma(X, Y, ENL, ENL)
+        g = Gamma(X, Y, ENL, ENL, april.shape)
 
         # Binary image
         im = g.image_binary(percent)
@@ -251,13 +246,14 @@ if __name__ == "__main__":
     gamma_test(april, may, "hvhv", 12, 0.01)
     gamma_test(april, may, "vvvv", 12, 0.01)
 
-    f, ax = multiENL_gamma(april_no_change.hhhh, may_no_change.hhhh)
+    # MultiENL plots
+    f, ax = multiENL_gamma(april.region(region_nochange).hhhh, may.region(region_nochange).hhhh)
     f.savefig("fig/gamma/gamma.multiENL.HH.pdf", bbox_inches='tight')
 
-    f, ax = multiENL_gamma(april_no_change.hvhv, may_no_change.hvhv)
+    f, ax = multiENL_gamma(april.region(region_nochange).hvhv, may.region(region_nochange).hvhv)
     f.savefig("fig/gamma/gamma.multiENL.HV.pdf", bbox_inches='tight')
 
-    f, ax = multiENL_gamma(april_no_change.vvvv, may_no_change.vvvv)
+    f, ax = multiENL_gamma(april.region(region_nochange).vvvv, may.region(region_nochange).vvvv)
     f.savefig("fig/gamma/gamma.multiENL.VV.pdf", bbox_inches='tight')
 
     f, ax = critical_region()
