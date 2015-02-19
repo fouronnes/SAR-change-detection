@@ -9,7 +9,6 @@ def read_sar_file(path, dtype, header):
     array = np.fromfile(path, dtype=dtype)
     if header:
         array = array[1024:]
-    array = array.reshape((1024, 1024))
     # Swap byte order
     return array.newbyteorder('S')
 
@@ -24,16 +23,6 @@ def sar_sum(sar_list):
     s.vvvv = sum([X.vvvv for X in sar_list])
     return s
 
-def determinant(X):
-    "Determinants of the covariance matrices in a SARData object"
-    detX = np.empty((1024, 1024))
-    return np.real((X.hhhh*X.hvhv*X.vvvv
-         + X.hhhv*X.hvvv*np.conj(X.hhvv)
-         + X.hhvv*np.conj(X.hhhv)*np.conj(X.hvvv)
-         - X.hhvv*X.hvhv*np.conj(X.hhvv)
-         - X.hhhv*np.conj(X.hhhv)*X.vvvv
-         - X.hhhh*X.hvvv*np.conj(X.hvvv)))
-
 class Region(object):
     "Defines a rectangular area in an image"
     def __init__(self, range_i, range_j):
@@ -46,8 +35,10 @@ class SARData(object):
     using covariance matrix representation
     """
 
-    def load(self, code, header):
+    def load(self, code, shape, header):
         "Load SARData object for a given month code"
+        self.shape = shape
+        self.size = shape[0]*shape[1]
         extension = ".emi" if header else ""
         self.hhhh = read_sar_file(root + '/{}/{}hhhh{}'.format(code, code, extension), np.float32, header)
         self.hhhv = read_sar_file(root + '/{}/{}hhhv{}'.format(code, code, extension), np.complex64, header)
@@ -60,13 +51,27 @@ class SARData(object):
     def region(self, region):
         "Extract a subset of the SARData image defined by a Region object"
         s = SARData()
-        s.hhhh = self.hhhh[np.ix_(region.range_i, region.range_j)]
-        s.hhhv = self.hhhv[np.ix_(region.range_i, region.range_j)]
-        s.hvhv = self.hvhv[np.ix_(region.range_i, region.range_j)]
-        s.hhvv = self.hhvv[np.ix_(region.range_i, region.range_j)]
-        s.hvvv = self.hvvv[np.ix_(region.range_i, region.range_j)]
-        s.vvvv = self.vvvv[np.ix_(region.range_i, region.range_j)]
+        s.hhhh = self.hhhh.reshape(self.shape)[np.ix_(region.range_i, region.range_j)].flatten()
+        s.hhhv = self.hhhv.reshape(self.shape)[np.ix_(region.range_i, region.range_j)].flatten()
+        s.hvhv = self.hvhv.reshape(self.shape)[np.ix_(region.range_i, region.range_j)].flatten()
+        s.hhvv = self.hhvv.reshape(self.shape)[np.ix_(region.range_i, region.range_j)].flatten()
+        s.hvvv = self.hvvv.reshape(self.shape)[np.ix_(region.range_i, region.range_j)].flatten()
+        s.vvvv = self.vvvv.reshape(self.shape)[np.ix_(region.range_i, region.range_j)].flatten()
         return s
+
+    def masked_region(self, mask):
+        "Extract a subset of the SARData image defined by a mask"
+        pass
+
+    def determinant(self):
+        "Determinants of the covariance matrices in a SARData object"
+        return np.real((self.hhhh*self.hvhv*self.vvvv
+            + self.hhhv*self.hvvv*np.conj(self.hhvv)
+            + self.hhvv*np.conj(self.hhhv)*np.conj(self.hvvv)
+            - self.hhvv*self.hvhv*np.conj(self.hhvv)
+            - self.hhhv*np.conj(self.hhhv)*self.vvvv
+            - self.hhhh*self.hvvv*np.conj(self.hvvv)))
+
 
 print("Loading SAR data...")
 
@@ -77,12 +82,12 @@ region_rye = Region(range(116, 146), range(328, 411))
 region_grass = Region(range(268, 330), range(128, 234))
 
 # Load data
-march = SARData().load("fl062_l", header=True)
-april = SARData().load("fl063_l", header=False)
-may = SARData().load("fl064_l", header=False)
-june = SARData().load("fl065_l", header=False)
-july = SARData().load("fl068_l", header=False)
-august = SARData().load("fl074_l", header=True)
+march  = SARData().load("fl062_l", (1024, 1024), header=True)
+april  = SARData().load("fl063_l", (1024, 1024), header=False)
+may    = SARData().load("fl064_l", (1024, 1024), header=False)
+june   = SARData().load("fl065_l", (1024, 1024), header=False)
+july   = SARData().load("fl068_l", (1024, 1024), header=False)
+august = SARData().load("fl074_l", (1024, 1024), header=True)
 
 # The complete time series
 sar_list = [march, april, may, june, july, august]

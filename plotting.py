@@ -11,9 +11,9 @@ def sar_show(channel):
 def color_composite(X):
     "Color composite of a EMISAR image"
 
-    green = 10*np.log(X.hhhh) / np.log(10)
-    blue = 10*np.log(X.vvvv) / np.log(10)
-    red = 10*np.log(X.hvhv) / np.log(10)
+    green = 10*np.log(X.hhhh.reshape(X.shape)) / np.log(10)
+    blue = 10*np.log(X.vvvv.reshape(X.shape)) / np.log(10)
+    red = 10*np.log(X.hvhv.reshape(X.shape)) / np.log(10)
 
     # Normalize
     green = matplotlib.colors.normalize(-30, 0, clip=True)(green)
