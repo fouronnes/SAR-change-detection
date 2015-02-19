@@ -1,7 +1,7 @@
 import numpy as np
-from plotting import *
-
-root = "../SAR_Data"
+import matplotlib.pyplot as plt
+import matplotlib.image
+import matplotlib.colors
 
 def read_sar_file(path, dtype, header):
     "Load a single SAR file"
@@ -35,17 +35,17 @@ class SARData(object):
     using covariance matrix representation
     """
 
-    def load(self, code, shape, header):
+    def load(self, path, code, shape, header):
         "Load SARData object for a given month code"
         self.shape = shape
         self.size = shape[0]*shape[1]
         extension = ".emi" if header else ""
-        self.hhhh = read_sar_file(root + '/{}/{}hhhh{}'.format(code, code, extension), np.float32, header)
-        self.hhhv = read_sar_file(root + '/{}/{}hhhv{}'.format(code, code, extension), np.complex64, header)
-        self.hvhv = read_sar_file(root + '/{}/{}hvhv{}'.format(code, code, extension), np.float32, header)
-        self.hhvv = read_sar_file(root + '/{}/{}hhvv{}'.format(code, code, extension), np.complex64, header)
-        self.hvvv = read_sar_file(root + '/{}/{}hvvv{}'.format(code, code, extension), np.complex64, header)
-        self.vvvv = read_sar_file(root + '/{}/{}vvvv{}'.format(code, code, extension), np.float32, header)
+        self.hhhh = read_sar_file(path + '/{}/{}hhhh{}'.format(code, code, extension), np.float32, header)
+        self.hhhv = read_sar_file(path + '/{}/{}hhhv{}'.format(code, code, extension), np.complex64, header)
+        self.hvhv = read_sar_file(path + '/{}/{}hvhv{}'.format(code, code, extension), np.float32, header)
+        self.hhvv = read_sar_file(path + '/{}/{}hhvv{}'.format(code, code, extension), np.complex64, header)
+        self.hvvv = read_sar_file(path + '/{}/{}hvvv{}'.format(code, code, extension), np.complex64, header)
+        self.vvvv = read_sar_file(path + '/{}/{}vvvv{}'.format(code, code, extension), np.float32, header)
         return self
 
     def region(self, region):
@@ -72,6 +72,21 @@ class SARData(object):
             - self.hhhv*np.conj(self.hhhv)*self.vvvv
             - self.hhhh*self.hvvv*np.conj(self.hvvv)))
 
+    def color_composite(self):
+        "Color composite of a EMISAR image"
+
+        # Take logarithm
+        green = 10*np.log(self.hhhh.reshape(self.shape)) / np.log(10)
+        blue = 10*np.log(self.vvvv.reshape(self.shape)) / np.log(10)
+        red = 10*np.log(self.hvhv.reshape(self.shape)) / np.log(10)
+
+        # Normalize
+        green = matplotlib.colors.normalize(-30, 0, clip=True)(green)
+        blue = matplotlib.colors.normalize(-30, 0, clip=True)(blue)
+        red = matplotlib.colors.normalize(-36, -6, clip=True)(red)
+
+        # Return as a RGB image
+        return np.concatenate((red[:,:,None], green[:,:,None], blue[:,:,None]), axis=2)
 
 print("Loading SAR data...")
 
@@ -82,12 +97,12 @@ region_rye = Region(range(116, 146), range(328, 411))
 region_grass = Region(range(268, 330), range(128, 234))
 
 # Load data
-march  = SARData().load("fl062_l", (1024, 1024), header=True)
-april  = SARData().load("fl063_l", (1024, 1024), header=False)
-may    = SARData().load("fl064_l", (1024, 1024), header=False)
-june   = SARData().load("fl065_l", (1024, 1024), header=False)
-july   = SARData().load("fl068_l", (1024, 1024), header=False)
-august = SARData().load("fl074_l", (1024, 1024), header=True)
+march  = SARData().load("../SAR_Data", "fl062_l", (1024, 1024), header=True)
+april  = SARData().load("../SAR_Data", "fl063_l", (1024, 1024), header=False)
+may    = SARData().load("../SAR_Data", "fl064_l", (1024, 1024), header=False)
+june   = SARData().load("../SAR_Data", "fl065_l", (1024, 1024), header=False)
+july   = SARData().load("../SAR_Data", "fl068_l", (1024, 1024), header=False)
+august = SARData().load("../SAR_Data", "fl074_l", (1024, 1024), header=True)
 
 # The complete time series
 sar_list = [march, april, may, june, july, august]
@@ -107,10 +122,10 @@ july_no_change   = july.region(region_nochange)
 august_no_change = august.region(region_nochange)
 
 # Make color composites
-plt.imsave("fig/march.jpg", color_composite(march))
-plt.imsave("fig/april.jpg", color_composite(april))
-plt.imsave("fig/may.jpg", color_composite(may))
-plt.imsave("fig/june.jpg", color_composite(june))
-plt.imsave("fig/july.jpg", color_composite(july))
-plt.imsave("fig/august.jpg", color_composite(august))
+plt.imsave("fig/march.jpg", march.color_composite())
+plt.imsave("fig/april.jpg", april.color_composite())
+plt.imsave("fig/may.jpg", may.color_composite())
+plt.imsave("fig/june.jpg", june.color_composite())
+plt.imsave("fig/july.jpg", july.color_composite())
+plt.imsave("fig/august.jpg", august.color_composite())
 
