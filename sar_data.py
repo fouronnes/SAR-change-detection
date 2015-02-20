@@ -23,12 +23,6 @@ def sar_sum(sar_list):
     s.vvvv = sum([X.vvvv for X in sar_list])
     return s
 
-class Region(object):
-    "Defines a rectangular area in an image"
-    def __init__(self, range_i, range_j):
-        self.range_i = range_i
-        self.range_j = range_j
-
 class SARData(object):
     """
     Object representing a polarimetric SAR image
@@ -47,19 +41,6 @@ class SARData(object):
         self.hvvv = read_sar_file(path + '/{}/{}hvvv{}'.format(code, code, extension), np.complex64, header)
         self.vvvv = read_sar_file(path + '/{}/{}vvvv{}'.format(code, code, extension), np.float32, header)
         return self
-
-    def region(self, region):
-        "Extract a subset of the SARData image defined by a Region object"
-        s = SARData()
-        s.hhhh = self.hhhh.reshape(self.shape)[np.ix_(region.range_i, region.range_j)].flatten()
-        s.hhhv = self.hhhv.reshape(self.shape)[np.ix_(region.range_i, region.range_j)].flatten()
-        s.hvhv = self.hvhv.reshape(self.shape)[np.ix_(region.range_i, region.range_j)].flatten()
-        s.hhvv = self.hhvv.reshape(self.shape)[np.ix_(region.range_i, region.range_j)].flatten()
-        s.hvvv = self.hvvv.reshape(self.shape)[np.ix_(region.range_i, region.range_j)].flatten()
-        s.vvvv = self.vvvv.reshape(self.shape)[np.ix_(region.range_i, region.range_j)].flatten()
-        s.shape = (len(region.range_i), len(region.range_j))
-        s.size = len(region.range_i) * len(region.range_j)
-        return s
 
     def masked_region(self, mask):
         "Extract a subset of the SARData image defined by a mask"
@@ -99,12 +80,7 @@ class SARData(object):
 
 print("Loading SAR data...")
 
-# Define notable regions in the SAR data set
-region_complete = Region(range(0, 1024), range(0, 1024))
-region_nochange = Region(range(307, 455), range(52, 120))
-region_rye = Region(range(116, 146), range(328, 411))
-region_grass = Region(range(268, 330), range(128, 234))
-
+# Load the masks defining image regions
 mask_forest = plt.imread("../SAR_Data/forestidx.tif")[:, :, 0].astype(bool, copy=True).flatten()
 mask_rye = plt.imread("../SAR_Data/ryeidx.tif")[:, :, 0].astype(bool, copy=True).flatten()
 mask_grass = plt.imread("../SAR_Data/grassidx.tif")[:, :, 0].astype(bool, copy=True).flatten()
