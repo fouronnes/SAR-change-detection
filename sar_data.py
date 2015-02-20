@@ -95,7 +95,7 @@ sar_list = [march, april, may, june, july, august]
 mask_forest = plt.imread("../SAR_Data/forestidx.tif")[:, :, 0].astype(bool, copy=True).flatten()
 mask_rye = plt.imread("../SAR_Data/ryeidx.tif")[:, :, 0].astype(bool, copy=True).flatten()
 mask_grass = plt.imread("../SAR_Data/grassidx.tif")[:, :, 0].astype(bool, copy=True).flatten()
-field_masks = [plt.imread("../SAR_Data/masks/{}.tif".format(x)).astype(bool, copy=True).flatten() for x in range(1, 38)]
+masks_crops = [plt.imread("../SAR_Data/masks/{}.tif".format(x))[:, :, 0].astype(bool, copy=True).flatten() for x in range(1, 38)]
 
 # Time series of image regions
 sar_list_nochange = [X.masked_region(mask_forest) for X in sar_list]

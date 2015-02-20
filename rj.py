@@ -1,4 +1,5 @@
 import sys
+from functools import reduce
 import numpy as np
 from numpy import log
 import scipy.stats
@@ -302,8 +303,24 @@ if __name__ == "__main__":
 
     # Produce the "period plots", at different significance levels
     month_labels = ["March", "April", "May", "June", "July", "August"]
-    regions_labels = ["Forest", "Rye", "Grass"]
-    rj_regions = [rj_nochange, rj_rye, rj_grass]
+
+    crops = {}
+    crops["Rye"] = [1, 8, 12, 23]
+    crops["Grass"] = [2, 4, 10, 16, 26]
+    crops["Winter wheat"] = [3, 5, 11, 20, 22, 27, 33, 35]
+    crops["Spring barley"] = [6, 13, 14, 29, 31, 34, 36]
+    crops["Peas"] = [7, 15, 18, 19, 21, 24, 28, 37]
+    crops["Spring oats"] = [9]
+    crops["Winter barley"] = [17, 25]
+    crops["Beets"] = [30]
+
+    regions_labels = [k for (k,v) in crops.items()]
+    # This monster line combines the masks into one and feeds it to RjTest.masked_region,
+    # and does the above for each crop type
+    rj_regions = [
+        rj_all.masked_region(reduce(np.logical_or, [masks_crops[field_id-1] for field_id in v]))
+        for (k,v) in crops.items()
+    ]
 
     def make_period_plot(percent):
         f, ax = periods_plot(month_labels, regions_labels, 
