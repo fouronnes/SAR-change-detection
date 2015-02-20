@@ -32,6 +32,7 @@ class RjTest(object):
     Implements the 'Rj' test statistic
     Detects the point of change in time series of polarimetric SAR
     """
+
     def __init__(self, sar_list, ENL):
         """
         Create a new Rj test
@@ -51,8 +52,7 @@ class RjTest(object):
 
         # Hypothesis H[l] is
         # Sl = ... = Sk
-        self.H = np.zeros(k)
-        self.H[:] = np.nan
+        self.H = [None]*self.k
 
         # Hypothesis K[l, s] is
         # S(l+s) = S(l+s-1)
@@ -62,7 +62,7 @@ class RjTest(object):
         self.K[:,:] = nan_array
 
         for l in range(1, k):
-            self.H[l] = Omnibus(sar_list[l-1:], ENL).pvalue()
+            self.H[l] = Omnibus(sar_list[l-1:], ENL)
 
             for j in range(1, k-l+1):
                 # l-1 because sar_list indexing is 0-based
@@ -131,6 +131,32 @@ class RjTest(object):
             j[np.logical_not(change_mask)] += 1
 
         return result
+
+    def masked_region(self, mask):
+        """
+        Extract a subset of the image and test result defined by a mask
+        This is similar to using SARData.masked_region() and then RjTest,
+        but more efficient because the test statistic is not recomputed
+        """
+        assert(mask.size == self.size)
+        assert(self.shape is not None)
+
+        r = RjTest.__new__(RjTest)
+        r.sar_list = [X.masked_region(mask) for X in self.sar_list]
+        r.shape = None
+        r.size = mask.sum()
+        r.k = self.k
+
+        r.H = [None]*(self.k)
+        r.K = np.zeros((r.k, r.k, r.size))
+        nan_array = np.empty(r.size)
+        nan_array[:] = np.nan
+        r.K[:,:] = nan_array
+        for l in range(1, self.k):
+            r.H[l] = self.H[l].masked_region(mask)
+            for j in range(1, self.k-l+1):
+                r.K[l, j] = self.K[l, j][mask]
+        return r
 
 def number_of_changes_histogram(im):
     f = plt.figure(figsize=(4, 2))
@@ -219,7 +245,7 @@ if __name__ == "__main__":
             rj.average_pvalue(1, 4), rj.average_pvalue(2, 3), rj.average_pvalue(3, 2), rj.average_pvalue(4, 1),
             rj.average_pvalue(1, 5), rj.average_pvalue(2, 4), rj.average_pvalue(3, 3), rj.average_pvalue(4, 2), rj.average_pvalue(5, 1),
 
-            rj.H[1], rj.H[2], rj.H[3], rj.H[4], rj.H[5]
+            rj.H[1].pvalue(), rj.H[2].pvalue(), rj.H[3].pvalue(), rj.H[4].pvalue(), rj.H[5].pvalue()
         ))
 
     def number_of_changes_test(rj, name, percent):
@@ -245,7 +271,7 @@ if __name__ == "__main__":
     number_of_changes_test(rj_all, "all", 0.00001)
 
     print("Forest:")
-    rj_nochange = RjTest(sar_list_nochange, 13)
+    rj_nochange = rj_all.masked_region(mask_forest)
     print_pvalue_table(rj_nochange)
     number_of_changes_test(rj_nochange, "forest", 0.10)
     number_of_changes_test(rj_nochange, "forest", 0.05)
@@ -255,7 +281,7 @@ if __name__ == "__main__":
     number_of_changes_test(rj_nochange, "forest", 0.00001)
 
     print("Rye:")
-    rj_rye = RjTest(sar_list_rye, 13)
+    rj_rye = rj_all.masked_region(mask_rye)
     print_pvalue_table(rj_rye)
     number_of_changes_test(rj_rye, "rye", 0.10)
     number_of_changes_test(rj_rye, "rye", 0.05)
@@ -265,7 +291,7 @@ if __name__ == "__main__":
     number_of_changes_test(rj_rye, "rye", 0.00001)
 
     print("Grass:")
-    rj_grass = RjTest(sar_list_grass, 13)
+    rj_grass = rj_all.masked_region(mask_grass)
     print_pvalue_table(rj_grass)
     number_of_changes_test(rj_grass, "grass", 0.10)
     number_of_changes_test(rj_grass, "grass", 0.05)

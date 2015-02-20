@@ -8,6 +8,7 @@ class Omnibus(object):
     """
     Implements the Omnibus test statistic
     """
+
     def __init__(self, sar_list, ENL):
         """
         Create a new Omnibus test
@@ -87,6 +88,23 @@ class Omnibus(object):
 
     def image_linear(self, p1, p2):
         pass
+
+    def masked_region(self, mask):
+        """
+        Extract a subset of the image and test result defined by a mask
+        This is similar to using SARData.masked_region() and then RjTest,
+        but more efficient because the test statistic is not recomputed
+        """
+        assert(mask.size) == sar_list[0].size
+        r = Omnibus.__new__(Omnibus)
+        r.sar_list = [X.masked_region(mask) for X in self.sar_list]
+        r.ENL = self.ENL
+        r.f = self.f
+        r.rho = self.rho
+        r.w2 = self.w2
+
+        r.lnq = self.lnq[mask]
+        return r
 
 if __name__ == "__main__":
     print("Omnibus test...")

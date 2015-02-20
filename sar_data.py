@@ -80,12 +80,7 @@ class SARData(object):
 
 print("Loading SAR data...")
 
-# Load the masks defining image regions
-mask_forest = plt.imread("../SAR_Data/forestidx.tif")[:, :, 0].astype(bool, copy=True).flatten()
-mask_rye = plt.imread("../SAR_Data/ryeidx.tif")[:, :, 0].astype(bool, copy=True).flatten()
-mask_grass = plt.imread("../SAR_Data/grassidx.tif")[:, :, 0].astype(bool, copy=True).flatten()
-
-# Load data
+# Load data for each month
 march  = SARData().load("../SAR_Data", "fl062_l", (1024, 1024), header=True)
 april  = SARData().load("../SAR_Data", "fl063_l", (1024, 1024), header=False)
 may    = SARData().load("../SAR_Data", "fl064_l", (1024, 1024), header=False)
@@ -95,6 +90,12 @@ august = SARData().load("../SAR_Data", "fl074_l", (1024, 1024), header=True)
 
 # The complete time series
 sar_list = [march, april, may, june, july, august]
+
+# Load the masks defining image regions
+mask_forest = plt.imread("../SAR_Data/forestidx.tif")[:, :, 0].astype(bool, copy=True).flatten()
+mask_rye = plt.imread("../SAR_Data/ryeidx.tif")[:, :, 0].astype(bool, copy=True).flatten()
+mask_grass = plt.imread("../SAR_Data/grassidx.tif")[:, :, 0].astype(bool, copy=True).flatten()
+field_masks = [plt.imread("../SAR_Data/masks/{}.tif".format(x)).astype(bool, copy=True).flatten() for x in range(1, 38)]
 
 # Time series of image regions
 sar_list_nochange = [X.masked_region(mask_forest) for X in sar_list]
