@@ -9,17 +9,23 @@ from omnibus import Omnibus
 
 def rj_test_statistic(sar_list, n, j):
     p = 3
-    f = p**2
     # Note: sar_list (list of months) indexes are zero-based
     # but mathematical is 1 based, so indexes are off by -1
     # additionally ranges end points are off by +1 because exclusive, and recall -1+1 = 0
     sum_j = sar_sum(sar_list[:j]).determinant()
     sum_j_minus_1 = sar_sum(sar_list[:j-1]).determinant()
 
-    detXj = sar_list[j-1].determinant() # -1 because sar_list if 0-based
+    detXj = sar_list[j-1].determinant() # -1 because sar_list is 0-based
     lnR = n*(p*(j*log(j) - (j-1)*log(j-1)) + (j-1)*log(sum_j_minus_1) + log(detXj) - j*log(sum_j))
 
-    return lnR
+    f = p**2
+    rho = 1 - (2*p**2 - 1)/(6*p*n) * (1 + 1/(j*(j-1)))
+    w2 = - p**2/4 * (1 - 1/rho)**2 + 1/(24*n**2) * p**2 * (p**2 - 1) * (1 + (2*j-1)/(j**2*(j-1)**2))*1/(rho**2)
+
+    # Return probability
+    z = -2*rho*lnR
+    chi2 = scipy.stats.chi2.cdf
+    return chi2(z, df=f) + w2*(chi2(z, df=f+4) - chi2(z, df=f))
 
 class RjTest(object):
     """
@@ -41,7 +47,6 @@ class RjTest(object):
         p = 3
         k = len(sar_list)
         self.k = k
-        self.f = p**2
         n = ENL
 
         # Hypothesis H[l] is
@@ -67,7 +72,7 @@ class RjTest(object):
 
     def average_pvalue(self, l, j):
         "Average probability over the region"
-        return 1 - np.mean(scipy.stats.chi2.cdf( -2 * self.K[l, j], df=self.f))
+        return 1 - np.mean(self.K[l, j])
 
     def points_of_change(self, percent):
         """
@@ -115,7 +120,7 @@ class RjTest(object):
         for repeat in range(1, self.k):
             # Numpy array indexing black magic to obtain an image mask
             # indicating if there is change at this (l, j) time point
-            change_mask = (1 - scipy.stats.chi2.cdf(-2*self.K[l, j, np.arange(self.size)], df=self.f)) < percent
+            change_mask = (1 - self.K[l, j, np.arange(self.size)]) < percent
 
             # Where there is change
             l[change_mask] += j[change_mask]

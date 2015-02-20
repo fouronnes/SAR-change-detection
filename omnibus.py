@@ -29,11 +29,17 @@ class Omnibus(object):
         X = sar_sum(sar_list)
 
         # Omnibus test
+        self.f = (k-1)*p**2
+        self.rho = 1 - (2*p**2 - 1)/(6*(k-1)*p) * (k/n - 1/(n*k))
+        self.w2 = p**2*(p**2-1)/(24*self.rho**2) * (k/n**2 - 1/((n*k)**2)) - (p**2*(k-1))/4 * (1 - 1/self.rho)**2
+        
         self.lnq = n*(p*k*np.log(k) + sum_term - k*np.log(X.determinant()))
 
     def pvalue(self):
         "Average probability over the tested region"
-        return 1 - np.mean(scipy.stats.chi2.cdf( -2 * self.lnq, df=self.f))
+        chi2 = scipy.stats.chi2.cdf
+        z = -2*self.rho*self.lnq
+        return 1 - np.mean(chi2(z, df=self.f) + self.w2 * (chi2(z, df=self.f+4) - chi2(z, df=self.f)))
 
     def histogram(self):
         """
@@ -114,23 +120,23 @@ if __name__ == "__main__":
     omnibus_binary(0.10)
 
     # Pairwise test
-    def average_test_for_region(r):
-        print("March = April :", Omnibus([march.region(r), april.region(r)], 13).pvalue())
-        print("April = May   :", Omnibus([april.region(r), may.region(r)], 13).pvalue())
-        print("May   = June  :", Omnibus([may.region(r), june.region(r)], 13).pvalue())
-        print("June  = July  :", Omnibus([june.region(r), july.region(r)], 13).pvalue())
-        print("July  = August:", Omnibus([july.region(r), august.region(r)], 13).pvalue())
-        print("Omnibus       :", Omnibus([X.region(r) for X in sar_list], 13).pvalue())
+    def average_test_for_masked_region(mask):
+        print("March = April :", Omnibus([march.masked_region(mask), april.masked_region(mask)], 13).pvalue())
+        print("April = May   :", Omnibus([april.masked_region(mask), may.masked_region(mask)], 13).pvalue())
+        print("May   = June  :", Omnibus([may.masked_region(mask), june.masked_region(mask)], 13).pvalue())
+        print("June  = July  :", Omnibus([june.masked_region(mask), july.masked_region(mask)], 13).pvalue())
+        print("July  = August:", Omnibus([july.masked_region(mask), august.masked_region(mask)], 13).pvalue())
+        print("Omnibus       :", Omnibus([X.masked_region(mask) for X in sar_list], 13).pvalue())
 
     # Omnibus test in notable regions
     print("")
     print("Forest:")
-    average_test_for_region(region_nochange)
+    average_test_for_masked_region(mask_forest)
 
     print("")
     print("Rye:")
-    average_test_for_region(region_rye)
+    average_test_for_masked_region(mask_rye)
 
     print("")
     print("Grass:")
-    average_test_for_region(region_grass)
+    average_test_for_masked_region(mask_grass)
