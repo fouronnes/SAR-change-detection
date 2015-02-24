@@ -139,12 +139,12 @@ if __name__ == "__main__":
 
     # Pairwise test
     def average_test_for_masked_region(mask):
-        print("March = April :", Omnibus([march.masked_region(mask), april.masked_region(mask)], 13).pvalue())
-        print("April = May   :", Omnibus([april.masked_region(mask), may.masked_region(mask)], 13).pvalue())
-        print("May   = June  :", Omnibus([may.masked_region(mask), june.masked_region(mask)], 13).pvalue())
-        print("June  = July  :", Omnibus([june.masked_region(mask), july.masked_region(mask)], 13).pvalue())
-        print("July  = August:", Omnibus([july.masked_region(mask), august.masked_region(mask)], 13).pvalue())
-        print("Omnibus       :", Omnibus([X.masked_region(mask) for X in sar_list], 13).pvalue())
+        print("March = April : {0:.4f}".format(Omnibus([march.masked_region(mask), april.masked_region(mask)], 13).pvalue()))
+        print("April = May   : {0:.4f}".format(Omnibus([april.masked_region(mask), may.masked_region(mask)], 13).pvalue()))
+        print("May   = June  : {0:.4f}".format(Omnibus([may.masked_region(mask), june.masked_region(mask)], 13).pvalue()))
+        print("June  = July  : {0:.4f}".format(Omnibus([june.masked_region(mask), july.masked_region(mask)], 13).pvalue()))
+        print("July  = August: {0:.4f}".format(Omnibus([july.masked_region(mask), august.masked_region(mask)], 13).pvalue()))
+        print("Omnibus       : {0:.4f}".format(Omnibus([X.masked_region(mask) for X in sar_list], 13).pvalue()))
 
     # Omnibus test in notable regions
     print("")
