@@ -301,6 +301,14 @@ if __name__ == "__main__":
     number_of_changes_test(rj_grass, "grass", 0.0001)
     number_of_changes_test(rj_grass, "grass", 0.00001)
 
+    print("Winter wheat:")
+    rj_winterwheat = rj_all.masked_region(
+            reduce(np.logical_or,
+                [masks_crops[field_id-1] for field_id in [3, 5, 11, 20, 22, 27, 33, 35]]
+            )
+        )
+    print_pvalue_table(rj_winterwheat)
+
     # Produce the "period plots", at different significance levels
     month_labels = ["March", "April", "May", "June", "July", "August"]
 
